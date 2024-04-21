@@ -165,3 +165,4 @@ token.pickle
 node_modules
 *.env
 .vscode
+db.json

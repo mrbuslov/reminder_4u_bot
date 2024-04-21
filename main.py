@@ -1,13 +1,16 @@
+import json
 from bot.utils import (
-    prompt,
     ask_llm,
+    get_prompt,
     translate_sentence
 )
+from bot.consts import prompt, DEFAULT_TIME_ZONE_LOCATION
 import asyncio
 import os
 from aiogram import Bot, Dispatcher, types
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from bot.settings import settings
+from dateutil import parser as date_parser
 
 
 # Initialize bot and dispatcher
@@ -29,10 +32,25 @@ async def send_welcome(message: types.Message):
     
 @dp.message()
 async def any_message(message: types.Message):
-    prompt_formatted = prompt + message.text
-    res = await ask_llm(prompt_formatted)
+    with open('db.json', 'r') as f:
+        db_json: dict = json.loads(f.read())
+
+    prompt = get_prompt(
+        message.text,
+        db_json.get(message.from_user.id) or DEFAULT_TIME_ZONE_LOCATION
+    )
+    res = await ask_llm(prompt)
+    res = json.loads(res)
+    print('res', res)
     
-    await message.answer(res)
+    resp_text = ''
+    if not res.get('reminder_text') or not res.get('time'):
+        resp_text = "Sorry, AI couldn't identify reminder text of time. Please, try again"
+    else:
+        time = date_parser.parse(res['time']).strftime("%H:%M, %b %d")
+        resp_text = f"Reminder text: {res['reminder_text']}\nTime: {time}"
+    
+    await message.answer(resp_text)
 
 
 

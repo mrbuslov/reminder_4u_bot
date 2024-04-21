@@ -1,17 +1,25 @@
-from datetime import datetime
+from datetime import datetime, UTC
+import json
 from requests import RequestException
 from g4f.client import Client, AsyncClient
 import deepl
 from bot.settings import settings
 from googletrans import Translator
+from bot.consts import prompt, _response_format
 
 
 g4f_client = AsyncClient()
 
-prompt = '''
-You're the best friend!
-'''.strip()
 
+def get_prompt(
+    message: str,
+    location: str
+):
+    return prompt.format(
+        message=message,
+        current_time_utc=datetime.now(UTC),
+        location=location,
+    ) + json.dumps(_response_format)
 
 async def translate_sentence(text: str, target_lang: str = 'en'):
     '''Translate sentence to destination language'''
