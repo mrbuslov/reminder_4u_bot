@@ -1,8 +1,0 @@
-aiogram==3.4.1
-googletrans==3.1.0a0
-g4f==0.2.9.8
-nest-asyncio==1.6.0
-deepl==1.17.0
-pydantic==2.5.3
-pydantic-settings==2.2.1
-requests

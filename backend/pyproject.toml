@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "ai_reminder"
+version = "0.0.1"
+description = ""
+authors = ["Dmitry Buslov <buslovdmitrij0@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+django = "^5.1.1"
+djangorestframework = "^3.15.2"
+langchain-openai = "^0.1.23"
+langchain-text-splitters = "^0.2.4"
+strenum = "^0.4.15"
+aiogram = "^3.13.0"
+g4f = "^0.2.9.8"
+deepl = "^1.17.0"
+pydantic = "^2.5.3"
+pydantic-settings = "^2.2.1"
+aiofiles = "23.2.1"
+pydub = "^0.25.1"
+ffprobe-python = "^1.0.3"

@@ -101,7 +101,7 @@ celerybeat-schedule
 *.sage.py
 
 # Environments
-.env
+backend/.env
 .venv
 env/
 venv/
@@ -166,3 +166,6 @@ node_modules
 *.env
 .vscode
 db.json
+
+# Project folders
+temp_voice_files/
