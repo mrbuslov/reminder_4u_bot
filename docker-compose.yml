@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  web:
+  server:
     build:
       context: .
       dockerfile: ./containers/backend.Dockerfile
-    command: python manage.py runserver 0.0.0.0:8000
+    command: /bin/sh -c "./scripts/run_server.sh"
     volumes:
       - ./backend:/app
     ports:
@@ -17,7 +17,7 @@ services:
   telegram-bot:
     container_name: telegram-bot
     depends_on:
-      - web
+      - server
     build:
       context: .
       dockerfile: ./containers/backend.Dockerfile
@@ -25,5 +25,4 @@ services:
       - ./backend:/app
     env_file:
       - backend/.env
-    command: >
-      sh -c "python manage.py run_bot"
+    command: /bin/sh -c "./scripts/run_telegram_bot.sh"

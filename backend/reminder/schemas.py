@@ -46,6 +46,7 @@ class GPTModel:
         client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
         result = None
         try:
+            # In order for the Whisper API to work, the buffer with the audio-bytes has to have a name
             audio.name = 'file.' + FILE_EXTENSION_TO_CONVERT_VOICE_AUDIO
             transcription = await client.audio.transcriptions.create(
                 model="whisper-1", file=audio
