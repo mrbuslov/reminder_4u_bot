@@ -7,9 +7,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-ALLOWED_HOSTS = []
+DEBUG = False
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -22,6 +21,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "reminder",
     "telegram_bot",
+    "huey.contrib.djhuey",
 ]
 
 MIDDLEWARE = [
@@ -54,20 +54,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -84,25 +76,42 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
 STATIC_URL = "static/"
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# scheduler
+# https://huey.readthedocs.io/en/latest/django.html#setting-things-up
+HUEY = {
+    "huey_class": "huey.RedisHuey",  # Huey implementation to use.
+    "name": "reminder-huey",
+    "results": True,  # Store return values of tasks.
+    "store_none": False,  # If a task returns None, do not save to results.
+    "immediate": DEBUG,  # If DEBUG=True, run synchronously.
+    "utc": True,  # Use UTC for all times internally.
+    "blocking": True,  # Perform blocking pop rather than poll Redis.
+    "connection": {
+        "host": "redis",
+        "port": 6379,
+        "db": 0,
+        "connection_pool": None,  # Definitely you should use pooling!
+        # ... tons of other options, see redis-py for details.
+        # huey-specific connection parameters.
+        "read_timeout": 1,  # If not polling (blocking pop), use timeout.
+        "url": None,  # Allow Redis config via a DSN.
+    },
+    "consumer": {
+        "workers": 1,
+        "worker_type": "thread",
+        "initial_delay": 0.1,  # Smallest polling interval, same as -d.
+        "backoff": 1.15,  # Exponential backoff using this rate, -b.
+        "max_delay": 10.0,  # Max possible polling interval, -m.
+        "scheduler_interval": 1,  # Check schedule every second, -s.
+        "periodic": True,  # Enable crontab feature.
+        "check_worker_health": True,  # Enable worker health checks.
+        "health_check_interval": 1,  # Check worker health every second.
+    },
+}

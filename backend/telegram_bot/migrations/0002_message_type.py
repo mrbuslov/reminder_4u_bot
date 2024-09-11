@@ -6,13 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('telegram_bot', '0001_initial'),
+        ("telegram_bot", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='tgmessage',
-            name='message_type',
-            field=models.CharField(choices=[('text', 'Text'), ('voice', 'Voice')], default='text', max_length=50),
+            model_name="tgmessage",
+            name="message_type",
+            field=models.CharField(
+                choices=[("text", "Text"), ("voice", "Voice")],
+                default="text",
+                max_length=50,
+            ),
         ),
     ]

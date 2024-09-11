@@ -8,33 +8,61 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='TgChat',
+            name="TgChat",
             fields=[
-                ('id', models.CharField(max_length=100, primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('region', models.CharField(max_length=100, null=True, verbose_name='Country or city user lives in')),
-                ('language', models.CharField(max_length=100, null=True)),
-                ('name', models.CharField(max_length=50, null=True)),
-                ('username', models.CharField(max_length=50, null=True)),
-                ('user_id', models.CharField(max_length=50, null=True)),
+                (
+                    "id",
+                    models.CharField(max_length=100, primary_key=True, serialize=False),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "region",
+                    models.CharField(
+                        max_length=100,
+                        null=True,
+                        verbose_name="Country or city user lives in",
+                    ),
+                ),
+                ("language", models.CharField(max_length=100, null=True)),
+                ("name", models.CharField(max_length=50, null=True)),
+                ("username", models.CharField(max_length=50, null=True)),
+                ("user_id", models.CharField(max_length=50, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='TgMessage',
+            name="TgMessage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('message', models.TextField()),
-                ('created_at', models.DateTimeField()),
-                ('message_from', models.CharField(choices=[('user', 'User'), ('bot', 'Bot')], max_length=50)),
-                ('tg_chat', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='telegram_bot.tgchat')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("message", models.TextField()),
+                ("created_at", models.DateTimeField()),
+                (
+                    "message_from",
+                    models.CharField(
+                        choices=[("user", "User"), ("bot", "Bot")], max_length=50
+                    ),
+                ),
+                (
+                    "tg_chat",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="telegram_bot.tgchat",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
     ]

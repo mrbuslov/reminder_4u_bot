@@ -15,7 +15,6 @@ services:
     working_dir: /app/
 
   telegram-bot:
-    container_name: telegram-bot
     depends_on:
       - server
     build:
@@ -26,3 +25,26 @@ services:
     env_file:
       - backend/.env
     command: /bin/sh -c "./scripts/run_telegram_bot.sh"
+    restart: unless-stopped
+
+  scheduler:
+    depends_on:
+      - server
+    build:
+      context: .
+      dockerfile: ./containers/backend.Dockerfile
+    volumes:
+      - ./backend:/app
+    env_file:
+      - backend/.env
+    command: /bin/sh -c "./scripts/run_scheduler.sh"
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redisdata:/data
+    restart: unless-stopped
+    stdin_open: true

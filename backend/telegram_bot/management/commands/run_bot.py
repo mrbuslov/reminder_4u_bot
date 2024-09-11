@@ -6,7 +6,7 @@ from telegram_bot.main import main
 
 
 class Command(BaseCommand):
-    help = '-'
+    help = "-"
 
     def handle(self, *args, **kwargs):
         asyncio.run(main())

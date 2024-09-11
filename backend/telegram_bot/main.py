@@ -23,22 +23,24 @@ async def send_welcome(message: types.Message):
 
 @dp.message(F.content_type == types.ContentType.VOICE)
 async def process_voice_message(message: types.Message):
-    first_message = await message.answer('Voice message received. Processing the reminder...')
+    first_message = await message.answer(
+        "Voice message received. Processing the reminder..."
+    )
     result = await process_message(message)
     await bot.delete_message(
-        chat_id=first_message.chat.id,
-        message_id=first_message.message_id
+        chat_id=first_message.chat.id, message_id=first_message.message_id
     )
     await message.answer(result)
 
 
 @dp.message(F.content_type == types.ContentType.TEXT)
 async def process_text_message(message: types.Message):
-    first_message = await message.answer('Text message received. Processing the reminder...')
+    first_message = await message.answer(
+        "Text message received. Processing the reminder..."
+    )
     result = await process_message(message)
     await bot.delete_message(
-        chat_id=first_message.chat.id,
-        message_id=first_message.message_id
+        chat_id=first_message.chat.id, message_id=first_message.message_id
     )
     await message.answer(result)
 
@@ -47,7 +49,7 @@ async def process_text_message(message: types.Message):
 async def process_any_other_message(message: types.Message):
     await message.answer(
         "Sorry, we don't accept such type of messages. Please, send a <u>voice</u> or <u>text</u> message",
-        parse_mode=ParseMode.HTML
+        parse_mode=ParseMode.HTML,
     )
 
 
@@ -55,6 +57,6 @@ async def main() -> None:
     await dp.start_polling(bot)
 
 
-if __name__ == '__main__':
-    print('Starting...')
+if __name__ == "__main__":
+    print("Starting...")
     asyncio.run(main())
