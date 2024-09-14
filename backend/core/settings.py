@@ -21,7 +21,11 @@ INSTALLED_APPS = [
     "rest_framework",
     "reminder",
     "telegram_bot",
+    # --- huey scheduler ---
     "huey.contrib.djhuey",
+    # 'bx_django_utils',  # https://github.com/boxine/bx_django_utils
+    # 'huey_monitor',  # https://pypi.org/project/django-huey-monitor/
+    # --- huey scheduler end ---
 ]
 
 MIDDLEWARE = [

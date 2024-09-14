@@ -42,7 +42,8 @@ class GPTModel:
         if runnable is not None:
             this_runnable = runnable
         try:
-            res = await this_runnable.ainvoke(text).content
+            res = await this_runnable.ainvoke(text)
+            res = res.content
         except Exception as e:
             print(e)
             res = None

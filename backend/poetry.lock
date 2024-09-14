@@ -351,6 +351,39 @@ files = [
 ]
 
 [[package]]
+name = "bx-django-utils"
+version = "79"
+description = "Various Django utility functions"
+optional = false
+python-versions = "*"
+files = [
+    {file = "bx_django_utils-79-py3-none-any.whl", hash = "sha256:d50b10ace24b0b363574542faecf04a81029e2fec6d6e6525fe063ed06238e04"},
+    {file = "bx_django_utils-79.tar.gz", hash = "sha256:cb66087d4e9396281acf5a4394b749cff3062b66082d5726f6a8a342fdd35d0e"},
+]
+
+[package.dependencies]
+bx-py-utils = ">=92"
+django = ">=4.2"
+python-stdnum = "*"
+
+[package.extras]
+dev = ["EditorConfig", "beautifulsoup4", "boto3 (>=1.25.0)", "build", "coverage", "darker[color,flynt,isort]", "django-debug-toolbar", "django-polymorphic", "flake8", "flake8-bugbear", "lxml", "manageprojects", "model-bakery", "packaging", "pdoc", "playwright", "requests-mock", "setuptools", "tblib", "tox (>=4.4.4)", "twine", "typeguard"]
+
+[[package]]
+name = "bx-py-utils"
+version = "101"
+description = "Various Python utility functions"
+optional = false
+python-versions = "<4,>=3.10"
+files = [
+    {file = "bx_py_utils-101-py3-none-any.whl", hash = "sha256:eece1f0b1e3c091d38f3013984056b05f43c6a0fd716489cf337d89df802ab59"},
+    {file = "bx_py_utils-101.tar.gz", hash = "sha256:2aa295cde55da99b77f5f2f8b5bf8c0bec7e0046511832989ecbb1a43183cf75"},
+]
+
+[package.extras]
+dev = ["EditorConfig", "beautifulsoup4", "boto3", "build", "coverage", "darker[color,flynt,isort]", "flake8", "flake8-bugbear", "freezegun", "lxml", "manageprojects", "openpyxl", "packaging", "pdoc", "requests-mock", "safety", "tblib", "tox (>=4.4.4)", "twine", "typeguard"]
+
+[[package]]
 name = "certifi"
 version = "2024.8.30"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -634,6 +667,29 @@ tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 [package.extras]
 argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
+
+[[package]]
+name = "django-huey-monitor"
+version = "0.9.0"
+description = "Django based tool for monitoring huey task queue: https://github.com/coleifer/huey"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "django-huey-monitor-0.9.0.tar.gz", hash = "sha256:03366d98579c07e132672aa760373949fecec108a0e91229e870bb21453c800b"},
+    {file = "django_huey_monitor-0.9.0-py3-none-any.whl", hash = "sha256:1d5922d182e138e288f99d6cdb326cbed20c831d4c906c96cba148b0979e648a"},
+]
+
+[package.dependencies]
+bx-django-utils = "*"
+bx-py-utils = "*"
+django = "*"
+huey = "*"
+
+[package.extras]
+dev = ["EditorConfig", "autopep8", "codespell", "colorlog", "coverage", "darker[color,flynt,isort]", "django-debug-toolbar", "django-redis", "flake8", "flake8-bugbear", "gevent", "gunicorn", "manage-django-project", "model-bakery", "mypy", "pip-tools", "psycopg2-binary", "pyflakes", "pyupgrade", "requests-mock", "safety", "tblib", "tomli", "tox", "twine"]
+django32 = ["django (>=3.2,<3.3)"]
+django42 = ["django (>=4.2,<4.3)"]
+django50 = ["django (>=5.0,<5.1)"]
 
 [[package]]
 name = "djangorestframework"
@@ -1712,6 +1768,22 @@ files = [
 cli = ["click (>=5.0)"]
 
 [[package]]
+name = "python-stdnum"
+version = "1.20"
+description = "Python module to handle standardized numbers and codes"
+optional = false
+python-versions = "*"
+files = [
+    {file = "python-stdnum-1.20.tar.gz", hash = "sha256:ad2a2cf2eb025de408210235f36b4ae31252de3186240ccaa8126e117cb82690"},
+    {file = "python_stdnum-1.20-py2.py3-none-any.whl", hash = "sha256:111008e10391d54fb2afad2a10df70d5cb0c6c0a7ec82fec6f022cb8712961d3"},
+]
+
+[package.extras]
+soap = ["zeep"]
+soap-alt = ["suds"]
+soap-fallback = ["PySimpleSOAP"]
+
+[[package]]
 name = "pytz"
 version = "2024.2"
 description = "World timezone definitions, modern and historical"
@@ -2307,4 +2379,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "3f9f727dc64b224d3e774efe4112ebb93ba155f89b572d6b38cd44e6a7c4dfbf"
+content-hash = "4831e9e56d5f30edddde1b84ed46245b47f70f46455297f1ef65fedb9d753859"

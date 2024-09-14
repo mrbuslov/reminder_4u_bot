@@ -7,7 +7,9 @@ class TgChat(models.Model):
     id = models.CharField(primary_key=True, max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     region = models.CharField(
-        max_length=100, verbose_name="Country or city user lives in", null=True
+        max_length=100,
+        verbose_name="Country or city user lives in + timezone",
+        null=True,
     )
     language = models.CharField(max_length=100, null=True)
 
@@ -27,7 +29,7 @@ class TgChat(models.Model):
 
 class TgMessage(models.Model):
     tg_chat = models.ForeignKey(TgChat, on_delete=models.CASCADE)
-    message = models.TextField()
+    message = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField()
     message_from = models.CharField(max_length=50, choices=MessageFromChoices.choices)
     message_type = models.CharField(

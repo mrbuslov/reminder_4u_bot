@@ -18,6 +18,8 @@ from reminder.schemas import GPTModelName
 from telegram_bot.models.models import TgChat
 from telegram_bot.settings import bot
 from dateutil.parser import parse
+from asgiref.sync import sync_to_async
+from reminder.tasks import send_reminder
 
 GPT_MODELS = {
     "gpt-4o": GPTModel(name=GPTModelName.GPT_4O, temperature=0.9),
@@ -79,6 +81,14 @@ async def parse_text_to_reminder_data(text: str, chat: TgChat) -> list[dict]:
     model = GPT_MODELS[GPTModelName.GPT_4O.value]
     prompt = PromptTemplate.from_template(REMINDER_EXTRACTION_PROMPT)
     chain = prompt | model.llm_instance
+    print(
+        {
+            "user_message": text,
+            "location": chat.get_region(),
+            "reminder_structure": Reminder.get_structure(),
+            "time_now": str(get_date_time_now()),
+        }
+    )
     res = await chain.ainvoke(
         {
             "user_message": text,
@@ -97,13 +107,22 @@ async def parse_text_to_reminder_data(text: str, chat: TgChat) -> list[dict]:
     # turn datetime string to datetime object
     for reminder_data in reminders_data_list:
         reminder_data["date_time"] = parse(reminder_data["date_time"])
+        reminder_data["user_specified_date_time"] = parse(
+            reminder_data["user_specified_date_time"]
+        )
     print("reminders_data_list", reminders_data_list)
     return reminders_data_list
 
 
-async def save_reminder(reminder_data: dict) -> bool:
-    # do_something.schedule((instance,), delay=3600)
-    pass
+async def save_reminder(reminder_data: dict) -> Reminder | None:
+    if reminder_data["date_time"] < get_date_time_now():
+        return None
+
+    reminder_obj = await sync_to_async(Reminder.objects.create)(**reminder_data)
+    task = send_reminder.schedule((reminder_obj.id,), eta=reminder_obj.date_time)
+    reminder_obj.task_id = task.id
+    await sync_to_async(reminder_obj.save)()
+    return reminder_obj
 
 
 async def delete_reminder(reminder_tak_id: str) -> bool:

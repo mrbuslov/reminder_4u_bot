@@ -3,7 +3,14 @@ from datetime import datetime
 from aiogram import types
 from asgiref.sync import sync_to_async
 
-from reminder.utils import parse_message_to_text, parse_text_to_reminder_data
+from reminder.models.choices import ReminderTypeChoices
+from reminder.utils import (
+    parse_message_to_text,
+    parse_text_to_reminder_data,
+    save_reminder,
+    GPT_MODELS,
+)
+from telegram_bot.consts import SYSTEM_MESSAGES
 from telegram_bot.models.choices import MessageFromChoices, MessageTypeChoices
 from telegram_bot.models.models import TgChat, TgMessage
 
@@ -49,6 +56,14 @@ async def write_msg_to_db(
     )
 
 
+def get_reminder_type_emoji(reminder_type: ReminderTypeChoices) -> str:
+    match reminder_type:
+        case ReminderTypeChoices.MEETING:
+            return "🗓"
+        case ReminderTypeChoices.OTHER:
+            return "✅"
+
+
 async def process_message(message: types.Message) -> str:
     chat_instance = await update_chat(
         chat_id=str(message.chat.id),
@@ -76,5 +91,45 @@ async def process_message(message: types.Message) -> str:
         message_type=MessageTypeChoices.TEXT,
     )
 
-    reminder_data = await parse_text_to_reminder_data(text_message, chat_instance)
-    return text_message
+    reminder_data_list = await parse_text_to_reminder_data(text_message, chat_instance)
+    for reminder in reminder_data_list:
+        reminder |= {
+            "chat": chat_instance,
+        }
+        await save_reminder(reminder)
+
+    if reminder_data_list:
+        message_to_user = "<b>We set these reminders for you:</b>\n" + "\n".join(
+            [
+                f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']}"
+                for reminder in reminder_data_list
+            ]
+        )
+        return message_to_user
+    else:
+        return "I didn't get that. Please try again."
+
+
+async def translate_message(text: str, language: str) -> str:
+    text = await GPT_MODELS["gpt-4o-mini"].ainvoke(
+        f"""
+        Translate this text to {language}:
+        {text}
+    """
+    )
+    return text
+
+
+async def get_start_message(message: types.Message) -> str:
+    user_name = message.from_user.full_name
+    chat_instance = await get_chat(message.chat.id)
+    text = SYSTEM_MESSAGES["start_command"].format(
+        user_name=(user_name if user_name else "there")
+    )
+    if not chat_instance.region:
+        text += "\n\nPlease set you <b>location</b> 📍 to get correctly your timezone. Use command /set_location"
+    if not chat_instance.language:
+        text += "\nAlso you can configure the <b>language</b> 🌍 of your reminders and how bot will talk to you. Use command /set_language"
+
+    text = await translate_message(text, chat_instance.language)
+    return text

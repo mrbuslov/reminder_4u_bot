@@ -2,55 +2,170 @@ import asyncio
 
 from aiogram import F, types
 from aiogram.enums.parse_mode import ParseMode
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command, StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
 
-from telegram_bot.consts import AVAILABLE_CONTENT_TYPES
+from reminder.utils import GPT_MODELS
+from telegram_bot.consts import AVAILABLE_CONTENT_TYPES, SYSTEM_MESSAGES
 from telegram_bot.settings import dp, bot
-from telegram_bot.utils import process_message
+from telegram_bot.utils import (
+    process_message,
+    update_chat,
+    get_chat,
+    get_start_message,
+    translate_message,
+)
 
 
+class HelpStates(StatesGroup):
+    waiting_for_setting_location = State()
+    waiting_for_setting_language = State()
+
+
+# ---------------------- Commands processing ----------------------
 @dp.message(CommandStart())
 async def send_welcome(message: types.Message):
-    user_name = message.from_user.full_name
-    text = (
-        f"Hello {user_name if user_name else 'there'} 👋! I'm the AI Reminder bot. 🤖\n"
-        "You send me your free-form text OR voice reminders, and I'll make sure you never forget them!\n"
-        "Just drop your reminders here, and I'll handle the rest. Give it a try!"
+    text = await get_start_message(message)
+    await message.answer(text, parse_mode=ParseMode.HTML)
+
+
+@dp.message(Command("help"))
+async def help_command(message: types.Message):
+    await send_welcome(message)
+
+
+@dp.message(StateFilter(None), Command("set_location"))
+async def set_location_command(message: types.Message, state: FSMContext):
+    await state.set_state(HelpStates.waiting_for_setting_location)
+    chat_instance = await get_chat(message.chat.id)
+    text = await translate_message(
+        SYSTEM_MESSAGES["location_command"], chat_instance.language
     )
+    await message.answer(text, parse_mode=ParseMode.HTML)
 
-    await message.reply(text)
+
+@dp.message(HelpStates.waiting_for_setting_location)
+async def set_location_command_waiting_for_value(
+    message: types.Message, state: FSMContext
+):
+    chat_instance = await get_chat(message.chat.id)
+    region_n_timezone = await GPT_MODELS["gpt-4o-mini"].ainvoke(
+        f"""
+        User sent the message with location.
+        Your task is to get location and timezone from the location in this format: <location> <UTC+00:00>
+        You MUST write IN ENGLISH!
+        If you can't get timezone, return None
+        You MUST return location + timezone or None, don't write anything else!
+        User message: {message.text}
+    """
+    )
+    if region_n_timezone == "None":
+        text = await translate_message(
+            SYSTEM_MESSAGES["location_not_changed"], chat_instance.language
+        )
+        await message.answer(text, parse_mode=ParseMode.HTML)
+    else:
+        await update_chat(
+            chat_id=str(message.chat.id),
+            chat_data={
+                "region": region_n_timezone,
+            },
+        )
+        text = await translate_message(
+            SYSTEM_MESSAGES["location_changed"].format(
+                region_n_timezone=region_n_timezone
+            ),
+            chat_instance.language,
+        )
+        await message.answer(text, parse_mode=ParseMode.HTML)
+    await state.clear()
 
 
+@dp.message(StateFilter(None), Command("set_language"))
+async def set_language_command(message: types.Message, state: FSMContext):
+    await state.set_state(HelpStates.waiting_for_setting_language)
+    chat_instance = await get_chat(message.chat.id)
+    text = await translate_message(
+        SYSTEM_MESSAGES["language_command"], chat_instance.language
+    )
+    await message.answer(text, parse_mode=ParseMode.HTML)
+
+
+@dp.message(HelpStates.waiting_for_setting_language)
+async def set_language_command_waiting_for_value(
+    message: types.Message, state: FSMContext
+):
+    chat_instance = await get_chat(message.chat.id)
+    language = await GPT_MODELS["gpt-4o-mini"].ainvoke(
+        f"""
+        User sent the message with the preferred language he wants to speak in.
+        Your task is to extract language in this format: Russian
+        You MUST write language IN ENGLISH!
+        You MUST extract ONLY one language.
+        If you can't identify language, return None
+        You MUST return language or None, don't write anything else!
+        User message: {message.text}
+    """
+    )
+    if language == "None":
+        text = await translate_message(
+            SYSTEM_MESSAGES["language_not_changed"], chat_instance.language
+        )
+        await message.answer(text, parse_mode=ParseMode.HTML)
+    else:
+        await update_chat(
+            chat_id=str(message.chat.id),
+            chat_data={
+                "language": language,
+            },
+        )
+        text = await translate_message(
+            SYSTEM_MESSAGES["language_changed"].format(language=language),
+            chat_instance.language,
+        )
+        await message.answer(text, parse_mode=ParseMode.HTML)
+    await state.clear()
+
+
+# ---------------------- Messages processing ----------------------
 @dp.message(F.content_type == types.ContentType.VOICE)
 async def process_voice_message(message: types.Message):
-    first_message = await message.answer(
-        "Voice message received. Processing the reminder..."
+    chat_instance = await get_chat(message.chat.id)
+    text = await translate_message(
+        SYSTEM_MESSAGES["message_voice_processing"], chat_instance.language
     )
+    first_message = await message.answer(text, parse_mode=ParseMode.HTML)
     result = await process_message(message)
+    result = await translate_message(result, chat_instance.language)
     await bot.delete_message(
         chat_id=first_message.chat.id, message_id=first_message.message_id
     )
-    await message.answer(result)
+    await message.answer(result, parse_mode=ParseMode.HTML)
 
 
 @dp.message(F.content_type == types.ContentType.TEXT)
 async def process_text_message(message: types.Message):
-    first_message = await message.answer(
-        "Text message received. Processing the reminder..."
+    chat_instance = await get_chat(message.chat.id)
+    text = await translate_message(
+        SYSTEM_MESSAGES["message_text_processing"], chat_instance.language
     )
+    first_message = await message.answer(text, parse_mode=ParseMode.HTML)
     result = await process_message(message)
+    result = await translate_message(result, chat_instance.language)
     await bot.delete_message(
         chat_id=first_message.chat.id, message_id=first_message.message_id
     )
-    await message.answer(result)
+    await message.answer(result, parse_mode=ParseMode.HTML)
 
 
 @dp.message(lambda message: message.content_type not in AVAILABLE_CONTENT_TYPES)
 async def process_any_other_message(message: types.Message):
-    await message.answer(
-        "Sorry, we don't accept such type of messages. Please, send a <u>voice</u> or <u>text</u> message",
-        parse_mode=ParseMode.HTML,
+    chat_instance = await get_chat(message.chat.id)
+    text = await translate_message(
+        SYSTEM_MESSAGES["message_any"], chat_instance.language
     )
+    await message.answer(text, parse_mode=ParseMode.HTML)
 
 
 async def main() -> None:
