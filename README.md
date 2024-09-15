@@ -8,3 +8,7 @@ AI Telegram Bot Reminder. You send a free-form text-reminder OR record a voice m
 You type in any text OR send a voice message, we convert and split it with AI like this:
 - You: hey, remind me about my haircut tomorrow at 8 am
 - Bot: Got you! Set a reminder "haircut" at 8 am. tomorrow. I'm sure you'll be stunning after it!
+
+# How to run
+- Create an `.env` file with fields from `.env.example` file
+- `docker compose up --build`

@@ -6,7 +6,7 @@ from aiogram.filters import CommandStart, Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
-from reminder.utils import GPT_MODELS
+from reminder.utils import GPT_MODELS, get_date_time_now
 from telegram_bot.consts import AVAILABLE_CONTENT_TYPES, SYSTEM_MESSAGES
 from telegram_bot.settings import dp, bot
 from telegram_bot.utils import (
@@ -15,6 +15,10 @@ from telegram_bot.utils import (
     get_chat,
     get_start_message,
     translate_message,
+    get_pretty_date,
+    get_help_message,
+    get_reminders,
+    get_reminder_type_emoji,
 )
 
 
@@ -32,7 +36,8 @@ async def send_welcome(message: types.Message):
 
 @dp.message(Command("help"))
 async def help_command(message: types.Message):
-    await send_welcome(message)
+    text = await get_help_message(message)
+    await message.answer(text, parse_mode=ParseMode.HTML)
 
 
 @dp.message(StateFilter(None), Command("set_location"))
@@ -57,6 +62,7 @@ async def set_location_command_waiting_for_value(
         You MUST write IN ENGLISH!
         If you can't get timezone, return None
         You MUST return location + timezone or None, don't write anything else!
+        Today is {get_pretty_date(only_date=True)}
         User message: {message.text}
     """
     )
@@ -126,6 +132,44 @@ async def set_language_command_waiting_for_value(
         )
         await message.answer(text, parse_mode=ParseMode.HTML)
     await state.clear()
+
+
+@dp.message(Command("list"))
+async def list_command(message: types.Message):
+    chat_instance = await get_chat(message.chat.id)
+    reminders_for_today = await get_reminders(
+        chat_instance.user_id, date_time=get_date_time_now()
+    )
+    if reminders_for_today:
+        text = """
+        <b>Your reminders for today:</b>
+        """
+        for reminder in reminders_for_today:
+            text += f"""
+            {get_reminder_type_emoji(reminder.reminder_type)} {reminder.text}
+            """
+    else:
+        text = SYSTEM_MESSAGES["list_command_invalid"]
+    text = await translate_message(text, chat_instance.language)
+    await message.answer(text, parse_mode=ParseMode.HTML)
+
+
+@dp.message(Command("list_all"))
+async def list_all_command(message: types.Message):
+    chat_instance = await get_chat(message.chat.id)
+    all_reminders = await get_reminders(chat_instance.user_id)
+    if all_reminders:
+        text = """
+        <b>Your all reminders:</b>
+        """
+        for reminder in all_reminders:
+            text += f"""
+            {get_reminder_type_emoji(reminder.reminder_type)} {reminder.text}
+            """
+    else:
+        text = SYSTEM_MESSAGES["list_all_command_invalid"]
+    text = await translate_message(text, chat_instance.language)
+    await message.answer(text, parse_mode=ParseMode.HTML)
 
 
 # ---------------------- Messages processing ----------------------

@@ -1,16 +1,23 @@
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
 from aiogram import types
 from asgiref.sync import sync_to_async
 
 from reminder.models.choices import ReminderTypeChoices
+from reminder.models.models import Reminder
 from reminder.utils import (
     parse_message_to_text,
     parse_text_to_reminder_data,
     save_reminder,
     GPT_MODELS,
+    get_date_time_now,
+    delete_reminders,
 )
-from telegram_bot.consts import SYSTEM_MESSAGES
+from telegram_bot.consts import (
+    SYSTEM_MESSAGES,
+    PRETTY_DATE_FORMAT,
+    PRETTY_DATE_TIME_FORMAT,
+)
 from telegram_bot.models.choices import MessageFromChoices, MessageTypeChoices
 from telegram_bot.models.models import TgChat, TgMessage
 
@@ -34,9 +41,20 @@ async def get_chat(chat_id) -> TgChat:
     return chat
 
 
-@sync_to_async
-def get_chat_10_msgs(chat_id) -> list[TgMessage]:
-    return list(TgMessage.objects.filter(tg_chat_id=chat_id))[:10]
+async def get_reminders(
+    user_id: str, date_time: datetime | None = None
+) -> list[Reminder]:
+    if date_time:
+        reminders = await sync_to_async(Reminder.objects.filter)(
+            date_time__date=date_time.date(), chat__user_id=user_id
+        )
+    else:
+        today = datetime.now(tz=UTC).date()
+        reminders = await sync_to_async(Reminder.objects.filter)(
+            date_time__date__gte=today, chat__user_id=user_id
+        )
+    reminders_list = await sync_to_async(list)(reminders)
+    return reminders_list
 
 
 async def write_msg_to_db(
@@ -61,7 +79,7 @@ def get_reminder_type_emoji(reminder_type: ReminderTypeChoices) -> str:
         case ReminderTypeChoices.MEETING:
             return "🗓"
         case ReminderTypeChoices.OTHER:
-            return "✅"
+            return "⏳"
 
 
 async def process_message(message: types.Message) -> str:
@@ -78,9 +96,9 @@ async def process_message(message: types.Message) -> str:
         message=message.text,
         message_from=MessageFromChoices.USER,
         created_at=message.date,
-        message_type=MessageTypeChoices.TEXT
-        if message.text
-        else MessageTypeChoices.VOICE,
+        message_type=(
+            MessageTypeChoices.TEXT if message.text else MessageTypeChoices.VOICE
+        ),
     )
     text_message = await parse_message_to_text(message)
     await write_msg_to_db(
@@ -91,23 +109,45 @@ async def process_message(message: types.Message) -> str:
         message_type=MessageTypeChoices.TEXT,
     )
 
-    reminder_data_list = await parse_text_to_reminder_data(text_message, chat_instance)
-    for reminder in reminder_data_list:
+    reminders_to_create, reminders_to_delete = await parse_text_to_reminder_data(
+        text_message, chat_instance
+    )
+    for reminder in [*reminders_to_create, *reminders_to_delete]:
         reminder |= {
             "chat": chat_instance,
         }
-        await save_reminder(reminder)
+    #  --------------- To create ---------------
+    message_to_user = ""
+    saved_reminders = []  # to capture valid reminders
+    for reminder in reminders_to_create:
+        save_res = await save_reminder(reminder)
+        if save_res is not None:
+            saved_reminders.append(save_res)
 
-    if reminder_data_list:
-        message_to_user = "<b>We set these reminders for you:</b>\n" + "\n".join(
+    if saved_reminders:
+        message_to_user += (
+            "<b>We set these reminders for you:</b>\n"
+            + "\n".join(
+                [
+                    f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']}"
+                    for reminder in reminders_to_create
+                ]
+            )
+            + "\n\n"
+        )
+    #  --------------- To delete ---------------
+    if reminders_to_delete:
+        deleted_reminders = await delete_reminders(reminders_to_delete)
+        message_to_user += "<b>We deleted these reminders for you:</b>\n" + "\n".join(
             [
                 f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']}"
-                for reminder in reminder_data_list
+                for reminder in deleted_reminders
             ]
         )
-        return message_to_user
-    else:
-        return "I didn't get that. Please try again."
+
+    if not message_to_user:
+        message_to_user = "I couldn't find any reminders to create or delete in your message. Please try again."
+    return message_to_user
 
 
 async def translate_message(text: str, language: str) -> str:
@@ -133,3 +173,35 @@ async def get_start_message(message: types.Message) -> str:
 
     text = await translate_message(text, chat_instance.language)
     return text
+
+
+async def get_help_message(message: types.Message) -> str:
+    user_name = message.from_user.full_name
+    chat_instance = await get_chat(message.chat.id)
+    text = SYSTEM_MESSAGES["help_command"].format(
+        user_name=(user_name if user_name else "there")
+    )
+
+    text = await translate_message(text, chat_instance.language)
+    return text
+
+
+def _get_pretty_date_time(date: datetime) -> str:
+    return date.strftime(PRETTY_DATE_TIME_FORMAT)
+
+
+def _get_pretty_date(date: datetime) -> str:
+    return date.strftime(PRETTY_DATE_FORMAT)
+
+
+def get_pretty_date(only_date: bool = False, delta: int = 0) -> str:
+    """
+    Args:
+        only_date: str - return only date
+        delta: int - delta in minutes. If delta is not specified, return current date
+    """
+    return (
+        _get_pretty_date(get_date_time_now() + timedelta(minutes=delta))
+        if only_date
+        else _get_pretty_date_time(get_date_time_now() + timedelta(minutes=delta))
+    )

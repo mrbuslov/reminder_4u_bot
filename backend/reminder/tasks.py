@@ -27,3 +27,5 @@ def send_reminder(reminder_id: int) -> None:
 
     loop = get_running_loop()
     loop.run_until_complete(send_reminder_text(found_reminder))
+
+    found_reminder.delete()

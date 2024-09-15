@@ -8,9 +8,11 @@ from aiogram import types
 from langchain_core.prompts import PromptTemplate
 from pydub import AudioSegment
 
+from manage import huey_instance
 from reminder.consts import (
     FILE_EXTENSION_TO_CONVERT_VOICE_AUDIO,
     REMINDER_EXTRACTION_PROMPT,
+    REMINDER_TO_DELETE_EXTRACTION_PROMPT,
 )
 from reminder.models.models import Reminder
 from reminder.schemas import GPTModel
@@ -20,6 +22,7 @@ from telegram_bot.settings import bot
 from dateutil.parser import parse
 from asgiref.sync import sync_to_async
 from reminder.tasks import send_reminder
+from django.db import transaction
 
 GPT_MODELS = {
     "gpt-4o": GPTModel(name=GPTModelName.GPT_4O, temperature=0.9),
@@ -77,7 +80,9 @@ async def parse_message_to_text(message: types.Message) -> str:
             os.remove(voice_mp3_path)
 
 
-async def parse_text_to_reminder_data(text: str, chat: TgChat) -> list[dict]:
+async def parse_text_to_reminder_data(
+    text: str, chat: TgChat
+) -> tuple[list[dict], list[dict]]:
     model = GPT_MODELS[GPTModelName.GPT_4O.value]
     prompt = PromptTemplate.from_template(REMINDER_EXTRACTION_PROMPT)
     chain = prompt | model.llm_instance
@@ -95,23 +100,31 @@ async def parse_text_to_reminder_data(text: str, chat: TgChat) -> list[dict]:
             "location": chat.get_region(),
             "reminder_structure": Reminder.get_structure(),
             "time_now": str(get_date_time_now()),
+            "response_structure": """{
+                "to_create": "list[<reminder_structure>]",
+                "to_delete": "list[<reminder_structure>]",
+            }""",
         }
     )
-    reminders_data_list_output = res.content
-    print("reminders_data_list_output", reminders_data_list_output)
-    reminders_data_list = (
-        json.loads(reminders_data_list_output)
-        if is_json(reminders_data_list_output)
-        else []
+    reminders_data_dict_output = res.content
+    print("reminders_data_dict_output", reminders_data_dict_output)
+    reminders_data_dict = (
+        json.loads(reminders_data_dict_output)
+        if is_json(reminders_data_dict_output)
+        else {}
     )
+    to_create, to_delete = reminders_data_dict.get(
+        "to_create", []
+    ), reminders_data_dict.get("to_delete", [])
     # turn datetime string to datetime object
-    for reminder_data in reminders_data_list:
+    for reminder_data in [*to_create, *to_delete]:
         reminder_data["date_time"] = parse(reminder_data["date_time"])
         reminder_data["user_specified_date_time"] = parse(
             reminder_data["user_specified_date_time"]
         )
-    print("reminders_data_list", reminders_data_list)
-    return reminders_data_list
+    print("to_create", to_create)
+    print("to_delete", to_delete)
+    return to_create, to_delete
 
 
 async def save_reminder(reminder_data: dict) -> Reminder | None:
@@ -125,6 +138,65 @@ async def save_reminder(reminder_data: dict) -> Reminder | None:
     return reminder_obj
 
 
-async def delete_reminder(reminder_tak_id: str) -> bool:
-    # https://github.com/coleifer/huey/issues/178
-    pass
+def _delete_reminder_from_db_n_task(reminder: Reminder) -> bool:
+    with transaction.atomic():
+        try:
+            reminder_task_id = reminder.task_id
+            reminder.delete()
+            # place it after deleting reminder
+            if reminder_task_id:
+                huey_instance.revoke_by_id(reminder_task_id)
+            return True
+        except Exception as e:
+            print("Failed to delete reminder", e)
+            return False
+
+
+async def delete_reminders(reminders_datas_list: list[dict]) -> list[dict]:
+    if not reminders_datas_list:
+        return []
+
+    deleted_reminders = []
+    model = GPT_MODELS[GPTModelName.GPT_4O.value]
+    prompt = PromptTemplate.from_template(REMINDER_TO_DELETE_EXTRACTION_PROMPT)
+    chain = prompt | model.llm_instance
+
+    all_reminders_filtered = await sync_to_async(Reminder.objects.filter)(
+        chat__user_id=reminders_datas_list[0]["chat"].user_id
+    )
+    all_reminders_list = await sync_to_async(list)(all_reminders_filtered)
+    all_reminders_list_str = [
+        f"""
+        id: {reminder.id}
+        reminder text: {reminder.text}
+        date and time for reminder execution: {reminder.user_specified_date_time}
+        reminder type: {reminder.reminder_type}
+        """
+        + "\n"
+        for reminder in all_reminders_list
+    ]
+    res = await chain.ainvoke(
+        {
+            "user_provided_reminders": reminders_datas_list,
+            "all_reminders_list": all_reminders_list_str,
+        }
+    )
+    reminders_to_delete_output = res.content
+    reminders_ids_to_delete = (
+        json.loads(reminders_to_delete_output)
+        if is_json(reminders_to_delete_output)
+        else []
+    )
+    print("reminders_ids_to_delete", reminders_ids_to_delete)
+    for reminder_id_to_delete in reminders_ids_to_delete:
+        reminder = await sync_to_async(Reminder.objects.get)(id=reminder_id_to_delete)
+        reminder_data = {
+            "reminder_type": reminder.reminder_type,
+            "text": reminder.text,
+        }
+        res = await sync_to_async(_delete_reminder_from_db_n_task)(reminder)
+        if res is True:
+            # put it to the end, so transaction will be rolled back if any one of them fails
+            deleted_reminders.append(reminder_data)
+
+    return deleted_reminders
