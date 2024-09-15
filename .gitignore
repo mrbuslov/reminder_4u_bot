@@ -131,13 +131,7 @@ dmypy.json
 .pyre/
 
 # PyCharm (but not everything!)
-.idea/workspace.xml
-.idea/pylint.xml
-.idea/dataSources.xml
-.idea/dataSources.local.xml
-.idea/usage.statistics.xml
-.idea/tasks.xml
-.idea/runConfigurations
+.idea/
 
 # dependencies
 frontend/node_modules
