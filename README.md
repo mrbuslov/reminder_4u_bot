@@ -9,6 +9,12 @@ You type in any text OR send a voice message, we convert and split it with AI li
 - You: hey, remind me about my haircut tomorrow at 8 am
 - Bot: Got you! Set a reminder "haircut" at 8 am. tomorrow. I'm sure you'll be stunning after it!
 
+Set up your account with settings (optional, up to you)
+![image](https://github.com/user-attachments/assets/5ec48ed3-dbd2-488d-bb59-165cccc7ea4d)
+Start setting or deleting the reminders with your voice or text messages!
+![image](https://github.com/user-attachments/assets/2e4e897f-3912-442c-9c8b-cd6d306eb2dd)
+
+
 # How to run
 - Create an `.env` file with fields from `.env.example` file
 - `docker compose up --build`
