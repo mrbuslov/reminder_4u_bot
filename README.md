@@ -10,9 +10,12 @@ You type in any text OR send a voice message, we convert and split it with AI li
 - Bot: Got you! Set a reminder "haircut" at 8 am. tomorrow. I'm sure you'll be stunning after it!
 
 Set up your account with settings (optional, up to you)
-<img src="https://github.com/user-attachments/assets/5ec48ed3-dbd2-488d-bb59-165cccc7ea4d" width="400">
+<br/>
+<img src="https://github.com/user-attachments/assets/5ec48ed3-dbd2-488d-bb59-165cccc7ea4d" width="50%">
+<br/>
 Start setting or deleting the reminders with your voice or text messages!
-<img src="https://github.com/user-attachments/assets/2e4e897f-3912-442c-9c8b-cd6d306eb2dd" width="400">
+<br/>
+<img src="https://github.com/user-attachments/assets/2e4e897f-3912-442c-9c8b-cd6d306eb2dd" width="50%">
 
 
 # How to run
