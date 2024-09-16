@@ -6,6 +6,7 @@ from aiogram.filters import CommandStart, Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
+from core.settings import logger
 from reminder.utils import GPT_MODELS, get_date_time_now
 from telegram_bot.consts import AVAILABLE_CONTENT_TYPES, SYSTEM_MESSAGES
 from telegram_bot.settings import dp, bot
@@ -227,5 +228,5 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    print("Starting...")
+    logger.info("Starting Telegram Bot...")
     asyncio.run(main())

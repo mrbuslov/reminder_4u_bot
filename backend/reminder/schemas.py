@@ -9,6 +9,7 @@ from openai import AsyncOpenAI
 from strenum import StrEnum
 
 from core import settings
+from core.settings import logger
 from reminder.consts import FILE_EXTENSION_TO_CONVERT_VOICE_AUDIO
 
 
@@ -45,7 +46,7 @@ class GPTModel:
             res = await this_runnable.ainvoke(text)
             res = res.content
         except Exception as e:
-            print(e)
+            logger.critical(f"Error in ainvoke: {e}")
             res = None
         return res
 
@@ -60,8 +61,7 @@ class GPTModel:
             )
             result = transcription.text
         except Exception as e:
-            # TODO: logging
-            print(f"Open API error: {e}")
+            logger.critical(f"Open API error: {e}")
         return result
 
 

@@ -1,5 +1,7 @@
 import os
 from pathlib import Path
+import logging
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -119,3 +121,37 @@ HUEY = {
         "health_check_interval": 1,  # Check worker health every second.
     },
 }
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": "logger_traces/logging.log",
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": True,
+        },
+    },
+}
+logger = logging.getLogger("django")
