@@ -117,7 +117,7 @@ async def parse_text_to_reminder_data(
             }""",
         }
     )
-    reminders_data_dict_output = res.content
+    reminders_data_dict_output = res.content.replace("```json", "").replace("```", "")
 
     logger.info(f"reminders_data_dict_output: {reminders_data_dict_output}")
     reminders_data_dict = (
