@@ -30,12 +30,12 @@ For example: "set a reminder in 5 minutes to do something" OR "delete the remind
 /list - list reminders for today
 /list_all - list all reminders
     """,
-    "location_command": "Please send me your location",
+    "location_command": "Please send me your country or city in which you live",
     "location_changed": "Timezone is updated to {region_n_timezone}!",
-    "location_not_changed": "I can't get timezone from your location. Please try again with city or country",
+    "location_not_changed": "I can't get timezone from your location. Please try again with city or country. Click on /set_location again.",
     "language_command": "Please send me in which language you feel comfortable receiving messages from the bot",
     "language_changed": "Language is updated to {language}!",
-    "language_not_changed": "I can't get language from your message. Please try again",
+    "language_not_changed": "I can't get language from your message. Please try again. Click on /set_language again.",
     "message_voice_processing": "I received your voice message. Processing the reminder...",
     "message_text_processing": "I received your text message. Processing the reminder...",
     "message_any": "Sorry, we don't accept such type of messages. Please, send a <u>voice</u> or <u>text</u> message",
