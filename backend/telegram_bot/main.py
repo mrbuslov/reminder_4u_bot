@@ -48,7 +48,7 @@ async def set_location_command(message: types.Message, state: FSMContext):
     await state.set_state(HelpStates.waiting_for_setting_location)
     chat_instance = await get_chat(message.chat.id)
     text = await translate_message(
-        SYSTEM_MESSAGES["location_command"], chat_instance.language
+        SYSTEM_MESSAGES["location_command"], chat_instance.get_language
     )
     await message.answer(text, parse_mode=ParseMode.HTML)
 
@@ -71,7 +71,7 @@ async def set_location_command_waiting_for_value(
     )
     if region_n_timezone == "None":
         text = await translate_message(
-            SYSTEM_MESSAGES["location_not_changed"], chat_instance.language
+            SYSTEM_MESSAGES["location_not_changed"], chat_instance.get_language
         )
         await message.answer(text, parse_mode=ParseMode.HTML)
     else:
@@ -85,7 +85,7 @@ async def set_location_command_waiting_for_value(
             SYSTEM_MESSAGES["location_changed"].format(
                 region_n_timezone=region_n_timezone
             ),
-            chat_instance.language,
+            chat_instance.get_language,
         )
         await message.answer(text, parse_mode=ParseMode.HTML)
     await state.clear()
@@ -96,7 +96,7 @@ async def set_language_command(message: types.Message, state: FSMContext):
     await state.set_state(HelpStates.waiting_for_setting_language)
     chat_instance = await get_chat(message.chat.id)
     text = await translate_message(
-        SYSTEM_MESSAGES["language_command"], chat_instance.language
+        SYSTEM_MESSAGES["language_command"], chat_instance.get_language
     )
     await message.answer(text, parse_mode=ParseMode.HTML)
 
@@ -119,7 +119,7 @@ async def set_language_command_waiting_for_value(
     )
     if language == "None":
         text = await translate_message(
-            SYSTEM_MESSAGES["language_not_changed"], chat_instance.language
+            SYSTEM_MESSAGES["language_not_changed"], chat_instance.get_language
         )
         await message.answer(text, parse_mode=ParseMode.HTML)
     else:
@@ -131,7 +131,7 @@ async def set_language_command_waiting_for_value(
         )
         text = await translate_message(
             SYSTEM_MESSAGES["language_changed"].format(language=language),
-            chat_instance.language,
+            chat_instance.get_language,
         )
         await message.answer(text, parse_mode=ParseMode.HTML)
     await state.clear()
@@ -156,7 +156,7 @@ async def list_command(message: types.Message):
             )
     else:
         text = SYSTEM_MESSAGES["list_command_invalid"]
-    text = await translate_message(text, chat_instance.language)
+    text = await translate_message(text, chat_instance.get_language)
     await message.answer(text, parse_mode=ParseMode.HTML)
 
 
@@ -177,7 +177,7 @@ async def list_all_command(message: types.Message):
             )
     else:
         text = SYSTEM_MESSAGES["list_all_command_invalid"]
-    text = await translate_message(text, chat_instance.language)
+    text = await translate_message(text, chat_instance.get_language)
     await message.answer(text, parse_mode=ParseMode.HTML)
 
 
@@ -186,11 +186,11 @@ async def list_all_command(message: types.Message):
 async def process_voice_message(message: types.Message):
     chat_instance = await get_chat(message.chat.id)
     text = await translate_message(
-        SYSTEM_MESSAGES["message_voice_processing"], chat_instance.language
+        SYSTEM_MESSAGES["message_voice_processing"], chat_instance.get_language
     )
     first_message = await message.answer(text, parse_mode=ParseMode.HTML)
     result = await process_message(message)
-    result = await translate_message(result, chat_instance.language)
+    result = await translate_message(result, chat_instance.get_language)
     await bot.delete_message(
         chat_id=first_message.chat.id, message_id=first_message.message_id
     )
@@ -201,11 +201,11 @@ async def process_voice_message(message: types.Message):
 async def process_text_message(message: types.Message):
     chat_instance = await get_chat(message.chat.id)
     text = await translate_message(
-        SYSTEM_MESSAGES["message_text_processing"], chat_instance.language
+        SYSTEM_MESSAGES["message_text_processing"], chat_instance.get_language
     )
     first_message = await message.answer(text, parse_mode=ParseMode.HTML)
     result = await process_message(message)
-    result = await translate_message(result, chat_instance.language)
+    result = await translate_message(result, chat_instance.get_language)
     await bot.delete_message(
         chat_id=first_message.chat.id, message_id=first_message.message_id
     )
@@ -216,7 +216,7 @@ async def process_text_message(message: types.Message):
 async def process_any_other_message(message: types.Message):
     chat_instance = await get_chat(message.chat.id)
     text = await translate_message(
-        SYSTEM_MESSAGES["message_any"], chat_instance.language
+        SYSTEM_MESSAGES["message_any"], chat_instance.get_language
     )
     await message.answer(text, parse_mode=ParseMode.HTML)
 

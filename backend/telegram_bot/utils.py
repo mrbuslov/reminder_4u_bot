@@ -174,7 +174,7 @@ async def get_start_message(message: types.Message) -> str:
     if not chat_instance.language:
         text += "\nAlso you can configure the <b>language</b> 🌍 of your reminders and how bot will talk to you. Use command /set_language"
 
-    text = await translate_message(text, chat_instance.language)
+    text = await translate_message(text, chat_instance.get_language)
     return text
 
 
@@ -185,7 +185,7 @@ async def get_help_message(message: types.Message) -> str:
         user_name=(user_name if user_name else "there")
     )
 
-    text = await translate_message(text, chat_instance.language)
+    text = await translate_message(text, chat_instance.get_language)
     return text
 
 
