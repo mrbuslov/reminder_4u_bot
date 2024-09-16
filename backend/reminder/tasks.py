@@ -1,6 +1,7 @@
 # huey_daemon
 from huey.contrib.djhuey import db_task
 
+from core.settings import reminder_logger
 from reminder.models.models import Reminder
 from telegram_bot.decorators import get_running_loop
 from telegram_bot.settings import bot
@@ -19,6 +20,7 @@ async def send_reminder_text(found_reminder: Reminder) -> None:
 @db_task()
 def send_reminder(reminder_id: int) -> None:
     """Sends reminder to user."""
+    reminder_logger.info(f"Sending reminder {reminder_id}")
     found_reminder = (
         Reminder.objects.select_related("chat").filter(id=reminder_id).first()
     )

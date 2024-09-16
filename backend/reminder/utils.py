@@ -8,7 +8,7 @@ from aiogram import types
 from langchain_core.prompts import PromptTemplate
 from pydub import AudioSegment
 
-from core.settings import logger
+from core.settings import reminder_logger
 from manage import huey_instance
 from reminder.consts import (
     FILE_EXTENSION_TO_CONVERT_VOICE_AUDIO,
@@ -75,7 +75,7 @@ async def parse_message_to_text(message: types.Message) -> str:
                 text = await GPT_MODELS[GPTModelName.GPT_4O.value].ainvoke_audio(buffer)
             return text
         except Exception as e:
-            logger.critical(f"Error in parse_message_to_text: {e}")
+            reminder_logger.critical(f"Error in parse_message_to_text: {e}")
             return ""
         finally:
             os.remove(voice_mp3_path)
@@ -84,7 +84,7 @@ async def parse_message_to_text(message: types.Message) -> str:
 async def parse_text_to_reminder_data(
     text: str, chat: TgChat
 ) -> tuple[list[dict], list[dict]]:
-    logger.info(f"Creating reminder, user_message: {text}")
+    reminder_logger.info(f"Creating reminder, user_message: {text}")
     model = GPT_MODELS[GPTModelName.GPT_4O.value]
     # for better response quality we should make 2 requests
     # --- 1st request ---
@@ -99,7 +99,7 @@ async def parse_text_to_reminder_data(
         }
     )
     reminders_data_unstructured_output = res.content
-    logger.info(
+    reminder_logger.info(
         f"reminders_data_unstructured_output: {reminders_data_unstructured_output}"
     )
     # --- 2nd request ---
@@ -119,7 +119,7 @@ async def parse_text_to_reminder_data(
     )
     reminders_data_dict_output = res.content.replace("```json", "").replace("```", "")
 
-    logger.info(f"reminders_data_dict_output: {reminders_data_dict_output}")
+    reminder_logger.info(f"reminders_data_dict_output: {reminders_data_dict_output}")
     reminders_data_dict = (
         json.loads(reminders_data_dict_output)
         if is_json(reminders_data_dict_output)
@@ -136,8 +136,8 @@ async def parse_text_to_reminder_data(
                 0
             ]  # rm timezone, bc time is already in user timezone
         )
-    logger.info(f"to_create: {to_create}")
-    logger.info(f"to_delete: {to_delete}")
+    reminder_logger.info(f"to_create: {to_create}")
+    reminder_logger.info(f"to_delete: {to_delete}")
     return to_create, to_delete
 
 
@@ -162,7 +162,7 @@ def _delete_reminder_from_db_n_task(reminder: Reminder) -> bool:
                 huey_instance.revoke_by_id(reminder_task_id)
             return True
         except Exception as e:
-            logger.info(f"Failed to delete reminder: {e}")
+            reminder_logger.info(f"Failed to delete reminder: {e}")
             return False
 
 
@@ -201,7 +201,7 @@ async def delete_reminders(reminders_datas_list: list[dict]) -> list[dict]:
         if is_json(reminders_to_delete_output)
         else []
     )
-    logger.info(f"reminders_ids_to_delete: {reminders_ids_to_delete}")
+    reminder_logger.info(f"reminders_ids_to_delete: {reminders_ids_to_delete}")
     for reminder_id_to_delete in reminders_ids_to_delete:
         reminder = await sync_to_async(Reminder.objects.get)(id=reminder_id_to_delete)
         reminder_data = {

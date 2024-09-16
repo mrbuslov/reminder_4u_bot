@@ -130,6 +130,10 @@ LOGGING = {
             "format": "{levelname} {asctime} {module} {message}",
             "style": "{",
         },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
     },
     "handlers": {
         "console": {
@@ -142,11 +146,17 @@ LOGGING = {
             "formatter": "verbose",
         },
     },
-    "root": {
-        "handlers": ["console"],
-        "level": "INFO",
-    },
     "loggers": {
+        "reminder": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "telegram_bot": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": True,
+        },
         "django": {
             "handlers": ["console", "file"],
             "level": "INFO",
@@ -154,4 +164,6 @@ LOGGING = {
         },
     },
 }
-logger = logging.getLogger("django")
+django_logger = logging.getLogger("django")
+reminder_logger = logging.getLogger("reminder")
+telegram_bot_logger = logging.getLogger("telegram_bot")
