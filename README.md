@@ -11,11 +11,11 @@ You type in any text OR send a voice message, we convert and split it with AI li
 
 Set up your account with settings (optional, up to you)
 <br/>
-<img src="https://github.com/user-attachments/assets/5ec48ed3-dbd2-488d-bb59-165cccc7ea4d" width="50%">
+<img src="https://github.com/user-attachments/assets/5ec48ed3-dbd2-488d-bb59-165cccc7ea4d" width="70%">
 <br/>
 Start setting or deleting the reminders with your voice or text messages!
 <br/>
-<img src="https://github.com/user-attachments/assets/2e4e897f-3912-442c-9c8b-cd6d306eb2dd" width="50%">
+<img src="https://github.com/user-attachments/assets/2e4e897f-3912-442c-9c8b-cd6d306eb2dd" width="70%">
 
 
 # How to run
