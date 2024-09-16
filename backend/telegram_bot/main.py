@@ -19,6 +19,10 @@ from telegram_bot.utils import (
     get_help_message,
     get_reminders,
     get_reminder_type_emoji,
+    _get_pretty_time,
+    _get_pretty_date,
+    _get_pretty_date_time,
+    _get_pretty_date_time_short,
 )
 
 
@@ -145,9 +149,12 @@ async def list_command(message: types.Message):
         <b>Your reminders for today:</b>
         """
         for reminder in reminders_for_today:
-            text += f"""
-            {get_reminder_type_emoji(reminder.reminder_type)} {reminder.text}
-            """
+            text += (
+                f"""
+            {get_reminder_type_emoji(reminder.reminder_type)} {_get_pretty_time(reminder.user_specified_date_time)} - {reminder.text}
+            """.strip()
+                + "\n"
+            )
     else:
         text = SYSTEM_MESSAGES["list_command_invalid"]
     text = await translate_message(text, chat_instance.language)
@@ -163,9 +170,12 @@ async def list_all_command(message: types.Message):
         <b>Your all reminders:</b>
         """
         for reminder in all_reminders:
-            text += f"""
-            {get_reminder_type_emoji(reminder.reminder_type)} {reminder.text}
-            """
+            text += (
+                f"""
+            {get_reminder_type_emoji(reminder.reminder_type)} {_get_pretty_date_time_short(reminder.user_specified_date_time)} - {reminder.text}
+            """.strip()
+                + "\n"
+            )
     else:
         text = SYSTEM_MESSAGES["list_all_command_invalid"]
     text = await translate_message(text, chat_instance.language)

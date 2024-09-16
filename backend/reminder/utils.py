@@ -11,8 +11,9 @@ from pydub import AudioSegment
 from manage import huey_instance
 from reminder.consts import (
     FILE_EXTENSION_TO_CONVERT_VOICE_AUDIO,
-    REMINDER_EXTRACTION_PROMPT,
     REMINDER_TO_DELETE_EXTRACTION_PROMPT,
+    REMINDER_EXTRACTION_PROMPT_DETAILED,
+    REMINDER_EXTRACTION_PROMPT_JSON,
 )
 from reminder.models.models import Reminder
 from reminder.schemas import GPTModel
@@ -83,23 +84,31 @@ async def parse_message_to_text(message: types.Message) -> str:
 async def parse_text_to_reminder_data(
     text: str, chat: TgChat
 ) -> tuple[list[dict], list[dict]]:
+    print("Creating reminder, user_message:", text)
     model = GPT_MODELS[GPTModelName.GPT_4O.value]
-    prompt = PromptTemplate.from_template(REMINDER_EXTRACTION_PROMPT)
+    # for better response quality we should make 2 requests
+    # --- 1st request ---
+    prompt = PromptTemplate.from_template(REMINDER_EXTRACTION_PROMPT_DETAILED)
     chain = prompt | model.llm_instance
-    print(
-        {
-            "user_message": text,
-            "location": chat.get_region(),
-            "reminder_structure": Reminder.get_structure(),
-            "time_now": str(get_date_time_now()),
-        }
-    )
     res = await chain.ainvoke(
         {
             "user_message": text,
-            "location": chat.get_region(),
             "reminder_structure": Reminder.get_structure(),
             "time_now": str(get_date_time_now()),
+            "user_time_now": str(chat.get_datetime_in_user_timezone),
+        }
+    )
+    reminders_data_unstructured_output = res.content
+    print("reminders_data_unstructured_output", reminders_data_unstructured_output)
+    # --- 2nd request ---
+    prompt = PromptTemplate.from_template(REMINDER_EXTRACTION_PROMPT_JSON)
+    chain = prompt | model.llm_instance
+    res = await chain.ainvoke(
+        {
+            "reminders_in_txt": reminders_data_unstructured_output,
+            "reminder_structure": Reminder.get_structure(),
+            "time_now": str(get_date_time_now()),
+            "user_time_now": str(chat.get_datetime_in_user_timezone),
             "response_structure": """{
                 "to_create": "list[<reminder_structure>]",
                 "to_delete": "list[<reminder_structure>]",
@@ -107,6 +116,7 @@ async def parse_text_to_reminder_data(
         }
     )
     reminders_data_dict_output = res.content
+
     print("reminders_data_dict_output", reminders_data_dict_output)
     reminders_data_dict = (
         json.loads(reminders_data_dict_output)
@@ -120,7 +130,9 @@ async def parse_text_to_reminder_data(
     for reminder_data in [*to_create, *to_delete]:
         reminder_data["date_time"] = parse(reminder_data["date_time"])
         reminder_data["user_specified_date_time"] = parse(
-            reminder_data["user_specified_date_time"]
+            reminder_data["user_specified_date_time"].split("+")[
+                0
+            ]  # rm timezone, bc time is already in user timezone
         )
     print("to_create", to_create)
     print("to_delete", to_delete)

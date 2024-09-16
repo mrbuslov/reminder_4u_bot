@@ -11,7 +11,7 @@ async def send_reminder_text(found_reminder: Reminder) -> None:
     from telegram_bot.utils import translate_message
 
     reminder_text = await translate_message(
-        found_reminder.text, found_reminder.chat.get_language()
+        found_reminder.text, found_reminder.chat.get_language
     )
     await bot.send_message(chat_id=found_reminder.chat.id, text=reminder_text)
 

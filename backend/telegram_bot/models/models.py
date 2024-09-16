@@ -1,5 +1,9 @@
-from django.db import models
+import re
 
+from django.db import models
+from datetime import datetime, timedelta, timezone
+
+from telegram_bot.consts import PATTERN_EXTRACT_UTC_FROM_LOCATION
 from telegram_bot.models.choices import MessageFromChoices, MessageTypeChoices
 
 
@@ -17,14 +21,32 @@ class TgChat(models.Model):
     username = models.CharField(max_length=50, null=True)
     user_id = models.CharField(max_length=50, null=True)
 
-    def get_language(self):
+    @property
+    def get_language(self) -> str:
         return self.language or "English"
 
-    def get_region(self):
+    @property
+    def get_region(self) -> str:
         return self.region or "Iceland (UTC+0)"
 
+    @property
+    def get_utc_offset(self) -> str | None:
+        match = re.search(PATTERN_EXTRACT_UTC_FROM_LOCATION, self.get_region)
+        return match.group() if match else "+00:00"
+
+    @property
+    def get_datetime_in_user_timezone(self) -> datetime:
+        offset_str = self.get_utc_offset
+        # Extract hours and minutes from the offset string
+        sign = 1 if offset_str[0] == "+" else -1
+        hours, minutes = map(int, offset_str[1:].split(":"))
+
+        utc_offset = timedelta(hours=sign * hours, minutes=sign * minutes)
+        tz = timezone(utc_offset)
+        return datetime.now(tz)
+
     def __str__(self):
-        return f"{self.id} - {self.name} {self.username} - {self.user_id} - ({self.get_region()}, {self.get_language()})"
+        return f"{self.id} - {self.name} {self.username} - {self.user_id} - ({self.get_region}, {self.get_language})"
 
 
 class TgMessage(models.Model):

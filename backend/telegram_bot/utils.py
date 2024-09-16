@@ -17,6 +17,8 @@ from telegram_bot.consts import (
     SYSTEM_MESSAGES,
     PRETTY_DATE_FORMAT,
     PRETTY_DATE_TIME_FORMAT,
+    PRETTY_TIME_FORMAT,
+    PRETTY_DATE_TIME_FORMAT_SHORT,
 )
 from telegram_bot.models.choices import MessageFromChoices, MessageTypeChoices
 from telegram_bot.models.models import TgChat, TgMessage
@@ -45,15 +47,15 @@ async def get_reminders(
     user_id: str, date_time: datetime | None = None
 ) -> list[Reminder]:
     if date_time:
-        reminders = await sync_to_async(Reminder.objects.filter)(
+        queryset = Reminder.objects.filter(
             date_time__date=date_time.date(), chat__user_id=user_id
-        )
+        ).order_by("date_time")
     else:
         today = datetime.now(tz=UTC).date()
-        reminders = await sync_to_async(Reminder.objects.filter)(
+        queryset = Reminder.objects.filter(
             date_time__date__gte=today, chat__user_id=user_id
-        )
-    reminders_list = await sync_to_async(list)(reminders)
+        ).order_by("date_time")
+    reminders_list = await sync_to_async(list)(queryset)
     return reminders_list
 
 
@@ -153,7 +155,8 @@ async def process_message(message: types.Message) -> str:
 async def translate_message(text: str, language: str) -> str:
     text = await GPT_MODELS["gpt-4o-mini"].ainvoke(
         f"""
-        Translate this text to {language}:
+        Translate text to {language}. If text is already in {language}, don't translate it, just return it.
+        Text to translate:
         {text}
     """
     )
@@ -186,12 +189,20 @@ async def get_help_message(message: types.Message) -> str:
     return text
 
 
+def _get_pretty_date_time_short(date: datetime) -> str:
+    return date.strftime(PRETTY_DATE_TIME_FORMAT_SHORT)
+
+
 def _get_pretty_date_time(date: datetime) -> str:
     return date.strftime(PRETTY_DATE_TIME_FORMAT)
 
 
 def _get_pretty_date(date: datetime) -> str:
     return date.strftime(PRETTY_DATE_FORMAT)
+
+
+def _get_pretty_time(date: datetime) -> str:
+    return date.strftime(PRETTY_TIME_FORMAT)
 
 
 def get_pretty_date(only_date: bool = False, delta: int = 0) -> str:
