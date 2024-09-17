@@ -19,6 +19,7 @@ from telegram_bot.consts import (
     PRETTY_DATE_TIME_FORMAT,
     PRETTY_TIME_FORMAT,
     PRETTY_DATE_TIME_FORMAT_SHORT,
+    PRETTY_DATE_FORMAT_SHORT,
 )
 from telegram_bot.models.choices import MessageFromChoices, MessageTypeChoices
 from telegram_bot.models.models import TgChat, TgMessage
@@ -131,7 +132,7 @@ async def process_message(message: types.Message) -> str:
             "<b>We set these reminders for you:</b>\n"
             + "\n".join(
                 [
-                    f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']} ({get_pretty_time(reminder['user_specified_date_time'])})"
+                    f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']} ({get_reminder_date_time(reminder['user_specified_date_time'])})"
                     for reminder in reminders_to_create
                 ]
             )
@@ -142,7 +143,7 @@ async def process_message(message: types.Message) -> str:
         deleted_reminders = await delete_reminders(reminders_to_delete)
         message_to_user += "<b>We deleted these reminders for you:</b>\n" + "\n".join(
             [
-                f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']} ({get_pretty_time(reminder['user_specified_date_time'])})"
+                f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']} ({get_reminder_date_time(reminder['user_specified_date_time'])})"
                 for reminder in deleted_reminders
             ]
         )
@@ -195,6 +196,19 @@ def get_pretty_date_time_short(date: datetime) -> str:
 
 def get_pretty_time(date: datetime) -> str:
     return date.strftime(PRETTY_TIME_FORMAT)
+
+
+def get_reminder_date_time(date: datetime) -> str:
+    today = datetime.now().date()
+    tomorrow = today + timedelta(days=1)
+
+    formatted_time = get_pretty_time(date)
+    if date.date() == today:
+        return f"today at {formatted_time}"
+    elif date.date() == tomorrow:
+        return f"tomorrow at {formatted_time}"
+    else:
+        return f"{date.strftime(PRETTY_DATE_FORMAT_SHORT)} at {formatted_time}"
 
 
 def _get_pretty_date_time(date: datetime) -> str:

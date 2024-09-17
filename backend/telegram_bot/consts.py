@@ -2,6 +2,7 @@ from aiogram import types
 
 AVAILABLE_CONTENT_TYPES = [types.ContentType.TEXT, types.ContentType.VOICE]
 PRETTY_DATE_FORMAT = "%A, %B %d, %Y"  # Monday, June 03, 2024
+PRETTY_DATE_FORMAT_SHORT = "%d.%m"  # 03.09
 PRETTY_TIME_FORMAT = "%H:%M"  # 14:34
 PRETTY_DATE_TIME_FORMAT_SHORT = "%A, %B %d at %H:%M"  # Monday, June 03 at 14:34
 PRETTY_DATE_TIME_FORMAT = "%A, %B %d, %Y at %H:%M"  # Monday, June 03, 2024 at 14:34

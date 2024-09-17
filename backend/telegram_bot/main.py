@@ -22,6 +22,7 @@ from telegram_bot.utils import (
     get_reminder_type_emoji,
     get_pretty_time,
     get_pretty_date_time_short,
+    get_reminder_date_time,
 )
 
 
@@ -171,7 +172,7 @@ async def list_all_command(message: types.Message):
         for reminder in all_reminders:
             text += (
                 f"""
-            {get_reminder_type_emoji(reminder.reminder_type)} {get_pretty_date_time_short(reminder.user_specified_date_time)} - {reminder.text}
+            {get_reminder_type_emoji(reminder.reminder_type)} {get_reminder_date_time(reminder.user_specified_date_time)} - {reminder.text}
             """.strip()
                 + "\n"
             )
