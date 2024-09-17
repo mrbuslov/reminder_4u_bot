@@ -118,8 +118,8 @@ async def parse_text_to_reminder_data(
         }
     )
     reminders_data_dict_output = res.content.replace("```json", "").replace("```", "")
-
     reminder_logger.info(f"reminders_data_dict_output: {reminders_data_dict_output}")
+
     reminders_data_dict = (
         json.loads(reminders_data_dict_output)
         if is_json(reminders_data_dict_output)
@@ -207,6 +207,7 @@ async def delete_reminders(reminders_datas_list: list[dict]) -> list[dict]:
         reminder_data = {
             "reminder_type": reminder.reminder_type,
             "text": reminder.text,
+            "user_specified_date_time": reminder.user_specified_date_time,
         }
         res = await sync_to_async(_delete_reminder_from_db_n_task)(reminder)
         if res is True:

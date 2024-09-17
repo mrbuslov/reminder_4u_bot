@@ -131,7 +131,7 @@ async def process_message(message: types.Message) -> str:
             "<b>We set these reminders for you:</b>\n"
             + "\n".join(
                 [
-                    f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']}"
+                    f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']} ({get_pretty_time(reminder['user_specified_date_time'])})"
                     for reminder in reminders_to_create
                 ]
             )
@@ -142,7 +142,7 @@ async def process_message(message: types.Message) -> str:
         deleted_reminders = await delete_reminders(reminders_to_delete)
         message_to_user += "<b>We deleted these reminders for you:</b>\n" + "\n".join(
             [
-                f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']}"
+                f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']} ({get_pretty_time(reminder['user_specified_date_time'])})"
                 for reminder in deleted_reminders
             ]
         )
@@ -189,8 +189,12 @@ async def get_help_message(message: types.Message) -> str:
     return text
 
 
-def _get_pretty_date_time_short(date: datetime) -> str:
+def get_pretty_date_time_short(date: datetime) -> str:
     return date.strftime(PRETTY_DATE_TIME_FORMAT_SHORT)
+
+
+def get_pretty_time(date: datetime) -> str:
+    return date.strftime(PRETTY_TIME_FORMAT)
 
 
 def _get_pretty_date_time(date: datetime) -> str:
@@ -199,10 +203,6 @@ def _get_pretty_date_time(date: datetime) -> str:
 
 def _get_pretty_date(date: datetime) -> str:
     return date.strftime(PRETTY_DATE_FORMAT)
-
-
-def _get_pretty_time(date: datetime) -> str:
-    return date.strftime(PRETTY_TIME_FORMAT)
 
 
 def get_pretty_date(only_date: bool = False, delta: int = 0) -> str:

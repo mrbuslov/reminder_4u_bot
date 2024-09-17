@@ -20,8 +20,8 @@ from telegram_bot.utils import (
     get_help_message,
     get_reminders,
     get_reminder_type_emoji,
-    _get_pretty_time,
-    _get_pretty_date_time_short,
+    get_pretty_time,
+    get_pretty_date_time_short,
 )
 
 
@@ -150,7 +150,7 @@ async def list_command(message: types.Message):
         for reminder in reminders_for_today:
             text += (
                 f"""
-            {get_reminder_type_emoji(reminder.reminder_type)} {_get_pretty_time(reminder.user_specified_date_time)} - {reminder.text}
+            {get_reminder_type_emoji(reminder.reminder_type)} {get_pretty_time(reminder.user_specified_date_time)} - {reminder.text}
             """.strip()
                 + "\n"
             )
@@ -171,7 +171,7 @@ async def list_all_command(message: types.Message):
         for reminder in all_reminders:
             text += (
                 f"""
-            {get_reminder_type_emoji(reminder.reminder_type)} {_get_pretty_date_time_short(reminder.user_specified_date_time)} - {reminder.text}
+            {get_reminder_type_emoji(reminder.reminder_type)} {get_pretty_date_time_short(reminder.user_specified_date_time)} - {reminder.text}
             """.strip()
                 + "\n"
             )
