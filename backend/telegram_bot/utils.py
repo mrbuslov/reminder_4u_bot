@@ -164,21 +164,6 @@ async def translate_message(text: str, language: str) -> str:
     return text
 
 
-async def get_start_message(message: types.Message) -> str:
-    user_name = message.from_user.full_name
-    chat_instance = await get_chat(message.chat.id)
-    text = SYSTEM_MESSAGES["start_command"].format(
-        user_name=(user_name if user_name else "there")
-    )
-    if not chat_instance.region:
-        text += "\n\nPlease set you <b>location</b> 📍 to get correctly your timezone. Use command /set_location"
-    if not chat_instance.language:
-        text += "\nAlso you can configure the <b>language</b> 🌍 of your reminders and how bot will talk to you. Use command /set_language"
-
-    text = await translate_message(text, chat_instance.get_language)
-    return text
-
-
 async def get_help_message(message: types.Message) -> str:
     user_name = message.from_user.full_name
     chat_instance = await get_chat(message.chat.id)

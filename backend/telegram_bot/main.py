@@ -14,14 +14,12 @@ from telegram_bot.utils import (
     process_message,
     update_chat,
     get_chat,
-    get_start_message,
     translate_message,
     get_pretty_date,
     get_help_message,
     get_reminders,
     get_reminder_type_emoji,
     get_pretty_time,
-    get_pretty_date_time_short,
     get_reminder_date_time,
 )
 
@@ -33,8 +31,18 @@ class HelpStates(StatesGroup):
 
 # ---------------------- Commands processing ----------------------
 @dp.message(CommandStart())
-async def send_welcome(message: types.Message):
-    text = await get_start_message(message)
+async def send_welcome(message: types.Message, state: FSMContext):
+    chat_instance = await get_chat(message.chat.id)
+    if chat_instance.language is None:
+        await state.set_state(HelpStates.waiting_for_setting_language)
+        text = SYSTEM_MESSAGES["language_command"]
+    elif chat_instance.region is None:
+        await state.set_state(HelpStates.waiting_for_setting_location)
+        text = SYSTEM_MESSAGES["location_command"]
+    else:
+        text = SYSTEM_MESSAGES["start_command"]
+
+    text = await translate_message(text, chat_instance.get_language)
     await message.answer(text, parse_mode=ParseMode.HTML)
 
 
@@ -59,6 +67,7 @@ async def set_location_command_waiting_for_value(
     message: types.Message, state: FSMContext
 ):
     chat_instance = await get_chat(message.chat.id)
+    was_region_none = chat_instance.region is None
     region_n_timezone = await GPT_MODELS["gpt-4o-mini"].ainvoke(
         f"""
         User sent the message with location.
@@ -71,10 +80,7 @@ async def set_location_command_waiting_for_value(
     """
     )
     if region_n_timezone == "None":
-        text = await translate_message(
-            SYSTEM_MESSAGES["location_not_changed"], chat_instance.get_language
-        )
-        await message.answer(text, parse_mode=ParseMode.HTML)
+        text = SYSTEM_MESSAGES["location_not_changed"]
     else:
         await update_chat(
             chat_id=str(message.chat.id),
@@ -82,14 +88,23 @@ async def set_location_command_waiting_for_value(
                 "region": region_n_timezone,
             },
         )
-        text = await translate_message(
-            SYSTEM_MESSAGES["location_changed"].format(
+        if was_region_none:
+            text = (
+                SYSTEM_MESSAGES["location_changed"].format(
+                    region_n_timezone=region_n_timezone
+                )
+                + "\nAll bot settings were updated."
+                + "\n"
+                + SYSTEM_MESSAGES["start_command"].replace("Hello!", "")
+            )
+        else:
+            text = SYSTEM_MESSAGES["location_changed"].format(
                 region_n_timezone=region_n_timezone
-            ),
-            chat_instance.get_language,
-        )
-        await message.answer(text, parse_mode=ParseMode.HTML)
-    await state.clear()
+            )
+        await state.clear()
+
+    text = await translate_message(text, chat_instance.get_language)
+    await message.answer(text, parse_mode=ParseMode.HTML)
 
 
 @dp.message(StateFilter(None), Command("set_language"))
@@ -119,23 +134,27 @@ async def set_language_command_waiting_for_value(
     """
     )
     if language == "None":
-        text = await translate_message(
-            SYSTEM_MESSAGES["language_not_changed"], chat_instance.get_language
-        )
-        await message.answer(text, parse_mode=ParseMode.HTML)
+        text = SYSTEM_MESSAGES["language_not_changed"]
     else:
-        await update_chat(
+        chat_instance = await update_chat(
             chat_id=str(message.chat.id),
             chat_data={
                 "language": language,
             },
         )
-        text = await translate_message(
-            SYSTEM_MESSAGES["language_changed"].format(language=language),
-            chat_instance.get_language,
-        )
-        await message.answer(text, parse_mode=ParseMode.HTML)
-    await state.clear()
+        if chat_instance.region is None:
+            text = (
+                SYSTEM_MESSAGES["language_changed"].format(language=language)
+                + "\n"
+                + SYSTEM_MESSAGES["location_command"]
+            )
+            await state.set_state(HelpStates.waiting_for_setting_location)
+        else:
+            text = SYSTEM_MESSAGES["language_changed"].format(language=language)
+            await state.clear()
+
+    text = await translate_message(text, chat_instance.get_language)
+    await message.answer(text, parse_mode=ParseMode.HTML)
 
 
 @dp.message(Command("list"))

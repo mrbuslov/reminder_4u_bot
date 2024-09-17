@@ -9,18 +9,14 @@ PRETTY_DATE_TIME_FORMAT = "%A, %B %d, %Y at %H:%M"  # Monday, June 03, 2024 at 1
 PATTERN_EXTRACT_UTC_FROM_LOCATION = r"[+-]\d{2}:\d{2}"
 
 SYSTEM_MESSAGES = {
-    "start_command": """
-Hello {user_name}! I'm the AI Reminder bot. 🤖\n
-You send me your free-form text OR voice reminders, and I'll make sure you never forget them!\n
-Just drop your reminders here, and I'll handle the rest. Give it a try!
-    """,
+    "start_command": "Hello! Send me the <b>voice</b> or <b>text</b> message to create or delete the reminder",
     "help_command": """
 Hello {user_name}! I'm the AI Reminder bot. 🤖\n
 You send me your free-form text OR voice reminders, and I'll make sure you never forget them!\n
-Just drop your reminders here, and I'll handle the rest. Give it a try!
+Send me the voice message!
 
 <b>What you can do:</b>
-- Send voice and text messages to <b>set</b> OR <b>delete</b> reminders.
+- Send voice and text messages to <b>create</b> OR <b>delete</b> reminders.
 For example: "set a reminder in 5 minutes to do something" OR "delete the reminder to visit the doctor for tomorrow at 8 am"
 - Set your location and change the language the bot can talk to you (see below).
 
@@ -31,12 +27,12 @@ For example: "set a reminder in 5 minutes to do something" OR "delete the remind
 /list - list reminders for today
 /list_all - list all reminders
     """,
-    "location_command": "Please send me your country or city in which you live",
+    "location_command": "Please send me your <b>country</b> or <b>city</b> in which you live",
     "location_changed": "Timezone is updated to {region_n_timezone}!",
-    "location_not_changed": "I can't get timezone from your location. Please try again with city or country. Click on /set_location again.",
-    "language_command": "Please send me in which language you feel comfortable receiving messages from the bot",
+    "location_not_changed": "I can't get timezone from your location. Please try again with city or country.",
+    "language_command": "Please send me the <b>language</b> you feel comfortable receiving messages from the bot",
     "language_changed": "Language is updated to {language}!",
-    "language_not_changed": "I can't get language from your message. Please try again. Click on /set_language again.",
+    "language_not_changed": "I can't get language from your message. Please try again.",
     "message_voice_processing": "I received your voice message. Processing the reminder...",
     "message_text_processing": "I received your text message. Processing the reminder...",
     "message_any": "Sorry, we don't accept such type of messages. Please, send a <u>voice</u> or <u>text</u> message",
