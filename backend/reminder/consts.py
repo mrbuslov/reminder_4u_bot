@@ -19,6 +19,7 @@ Rules for reminder extraction:
 - You MUST write date + time in "date_time" field in UTC+0 from "Current date and time by UTC+0" section.
 - You MUST write date + time in "user_specified_date_time" field in user specified timezone from "Current user date and time by user's timezone" section.
 - You MUST think step by step and write very short analysis before every reminder how to fill it.
+- You MUST set correct current year!
 
 Current date and time by UTC+0: {time_now}
 Current user date and time by user's timezone: {user_time_now}

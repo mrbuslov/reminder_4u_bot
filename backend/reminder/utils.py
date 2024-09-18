@@ -42,7 +42,7 @@ def is_json(json_str: str) -> bool:
 
 
 def get_date_time_now() -> datetime:
-    return datetime.now(timezone.utc).astimezone().replace(microsecond=0)
+    return datetime.now(timezone.utc)
 
 
 async def save_voice_as_mp3(voice: types.Voice) -> str:
