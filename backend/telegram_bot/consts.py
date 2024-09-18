@@ -27,10 +27,10 @@ For example: "set a reminder in 5 minutes to do something" OR "delete the remind
 /list - list reminders for today
 /list_all - list all reminders
     """,
-    "location_command": "Please send me your <b>country</b> or <b>city</b> in which you live",
+    "location_command": "<b>Country</b>. Send me your <b>country</b> or <b>city</b> in which you live to set the correct timezone",
     "location_changed": "Timezone is updated to {region_n_timezone}!",
     "location_not_changed": "I can't get timezone from your location. Please try again with city or country.",
-    "language_command": "Please send me the <b>language</b> you feel comfortable receiving messages from the bot",
+    "language_command": "<b>Language</b>. Send me the <b>language</b> you want to receive messages from the bot",
     "language_changed": "Language is updated to {language}!",
     "language_not_changed": "I can't get language from your message. Please try again.",
     "message_voice_processing": "I received your voice message. Processing the reminder...",
