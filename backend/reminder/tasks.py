@@ -8,16 +8,28 @@ from core.settings import reminder_logger
 from reminder.models.models import Reminder
 from telegram_bot.decorators import get_running_loop
 from telegram_bot.settings import bot
+from aiogram.exceptions import TelegramForbiddenError
 
 
-async def send_reminder_text(found_reminder: Reminder) -> None:
+async def send_reminder_text(found_reminder: Reminder) -> bool:
     """Sends reminder to user."""
     from telegram_bot.utils import translate_message
 
-    reminder_text = await translate_message(
-        found_reminder.text, found_reminder.chat.get_language
-    )
-    await bot.send_message(chat_id=found_reminder.chat.id, text=reminder_text)
+    try:
+        reminder_text = await translate_message(
+            found_reminder.text, found_reminder.chat.get_language
+        )
+        await bot.send_message(chat_id=found_reminder.chat.id, text=reminder_text)
+        reminder_logger.error(f"Reminder was sent to {found_reminder.chat.id}")
+        return True
+    except TelegramForbiddenError:
+        reminder_logger.info(
+            f"Chat {found_reminder.chat.id} is not allowed to send messages"
+        )
+        return True
+    except Exception as e:
+        reminder_logger.error(f"Error while sending reminder: {e}")
+        return False
 
 
 @db_task()
@@ -32,15 +44,16 @@ def send_reminder(reminder_id: int) -> None:
         return
 
     loop = get_running_loop()
-    loop.run_until_complete(send_reminder_text(found_reminder))
+    result = loop.run_until_complete(send_reminder_text(found_reminder))
 
-    found_reminder.delete()
+    if result is not False:
+        found_reminder.delete()
 
 
 should_skip_check_reminder = True
 
 
-@db_periodic_task(crontab(minute="*/1"))
+@db_periodic_task(crontab(minute="*/5"))
 def check_reminder_every_five_mins():
     """
     Checks, if there are reminders that need to be sent.
@@ -66,5 +79,7 @@ def check_reminder_every_five_mins():
         )
 
         loop = get_running_loop()
-        loop.run_until_complete(send_reminder_text(reminder))
-        reminder.delete()
+        result = loop.run_until_complete(send_reminder_text(reminder))
+
+        if result is not False:
+            reminder.delete()
