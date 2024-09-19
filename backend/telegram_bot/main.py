@@ -68,17 +68,20 @@ async def set_location_command_waiting_for_value(
 ):
     chat_instance = await get_chat(message.chat.id)
     was_region_none = chat_instance.region is None
-    region_n_timezone = await GPT_MODELS["gpt-4o-mini"].ainvoke(
+    region_n_timezone = await GPT_MODELS["gpt-4o"].ainvoke(
         f"""
         User sent the message with location.
         Your task is to get location and timezone from the location in this format: <location> <UTC+00:00>
+        You MUST write current and relevant timezone based on "Current date".
         You MUST write IN ENGLISH!
         If you can't get timezone, return None
         You MUST return location + timezone or None, don't write anything else!
-        Today is {get_pretty_date(only_date=True)}
+
+        Current date: {get_pretty_date(only_date=True)}
         User message: {message.text}
     """
     )
+    print("region_n_timezone", region_n_timezone)
     if region_n_timezone == "None":
         text = SYSTEM_MESSAGES["location_not_changed"]
     else:

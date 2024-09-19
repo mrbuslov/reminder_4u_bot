@@ -6,7 +6,6 @@ from huey.contrib.djhuey import db_periodic_task, db_task
 
 from core.settings import reminder_logger
 from reminder.models.models import Reminder
-from reminder.utils import get_date_time_now
 from telegram_bot.decorators import get_running_loop
 from telegram_bot.settings import bot
 
@@ -29,6 +28,7 @@ def send_reminder(reminder_id: int) -> None:
         Reminder.objects.select_related("chat").filter(id=reminder_id).first()
     )
     if not found_reminder:
+        reminder_logger.info(f"Reminder is not found {reminder_id}")
         return
 
     loop = get_running_loop()
@@ -40,13 +40,16 @@ def send_reminder(reminder_id: int) -> None:
 should_skip_check_reminder = True
 
 
-@db_periodic_task(crontab(minute="*/5"))
+@db_periodic_task(crontab(minute="*/1"))
 def check_reminder_every_five_mins():
     """
     Checks, if there are reminders that need to be sent.
     Sometimes reminders are missed - we do this for double check
     """
+    from reminder.utils import get_date_time_now
+
     reminder_logger.info(f"Checking reminders every 5 minutes")
+
     # when we start the bot, huey will automatically send reminders, so we don't need to check them 1st time
     global should_skip_check_reminder
     if should_skip_check_reminder:
@@ -58,7 +61,7 @@ def check_reminder_every_five_mins():
         date_time__lt=get_date_time_now() - timedelta(minutes=5)
     )
     for reminder in expired_reminders:
-        reminder_logger.critical(
+        reminder_logger.warning(
             f"Reminder is expired. Sending it with crontab func. Reminder text: '{reminder.text}'"
         )
 
