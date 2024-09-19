@@ -130,11 +130,10 @@ async def parse_text_to_reminder_data(
     ), reminders_data_dict.get("to_delete", [])
     # turn datetime string to datetime object
     for reminder_data in [*to_create, *to_delete]:
-        reminder_data["date_time"] = parse(reminder_data["date_time"])
+        # rm timezone, bc time is already in user timezone
+        reminder_data["date_time"] = parse(reminder_data["date_time"].split("+", 1)[0])
         reminder_data["user_specified_date_time"] = parse(
-            reminder_data["user_specified_date_time"].split("+")[
-                0
-            ]  # rm timezone, bc time is already in user timezone
+            reminder_data["user_specified_date_time"].split("+", 1)[0]
         )
     reminder_logger.info(f"to_create: {to_create}")
     reminder_logger.info(f"to_delete: {to_delete}")

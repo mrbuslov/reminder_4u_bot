@@ -23,7 +23,7 @@ class Reminder(models.Model):
     )
 
     @staticmethod
-    def get_structure():
+    def get_structure() -> dict:
         return {
             "text": "str",
             "date_time": "datetime",

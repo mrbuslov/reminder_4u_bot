@@ -11,6 +11,7 @@ Rules for reminder extraction:
 - You MUST extract reminder text ONLY in English.
 - You MUST return the extracted reminder data in JSON format from "Response Structure" section.
 - Every reminder MUST be in JSON format from "Reminder Structure" section.
+- You MUST use double quotes for JSON keys and values!
 - If reminders are not provided, write so.
 - If the user didn't provide time or time offset - you MUST use current time plus 5 minutes.
 - If user didn't provide date - you MUST use current date.
@@ -44,6 +45,7 @@ Rules for reminder extraction:
 - You MUST write text of the reminder as descriptive as you can (based on user's message) - it's important for the users not to miss any details. But extract only reminder body, not time and date.
 - You MUST return the extracted data in JSON format from "Response Structure" section.
 - Every reminder MUST be in JSON format from "Reminder Structure" section.
+- You MUST use double quotes for JSON keys and values!
 - If reminders are not provided, return dict with empty fields: "to_create": [], "to_delete": []. Do not guess or create random reminders.
 - You MUST return ONLY plain json dict without markdown and this: "```json", don't write anything else.
 - All fields are important, so you must fill them all!
