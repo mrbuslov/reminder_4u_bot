@@ -57,7 +57,7 @@ def check_reminder_every_five_mins():
         return
 
     # find reminders that have been expired more than 5 minutes
-    expired_reminders = Reminder.objects.filter(
+    expired_reminders = Reminder.objects.select_related("chat").filter(
         date_time__lt=get_date_time_now() - timedelta(minutes=5)
     )
     for reminder in expired_reminders:
