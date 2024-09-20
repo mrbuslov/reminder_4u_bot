@@ -123,7 +123,7 @@ async def process_message(message: types.Message) -> str:
     message_to_user = ""
     saved_reminders = []  # to capture valid reminders
     for reminder in reminders_to_create:
-        save_res = await save_remяinder(reminder)
+        save_res = await save_reminder(reminder)
         if save_res is not None:
             saved_reminders.append(save_res)
 
