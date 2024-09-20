@@ -194,7 +194,7 @@ async def list_all_command(message: types.Message):
         for reminder in all_reminders:
             text += (
                 f"""
-            {get_reminder_type_emoji(reminder.reminder_type)} {get_reminder_date_time(reminder.user_specified_date_time)} - {reminder.text}
+            {get_reminder_type_emoji(reminder.reminder_type)} {get_reminder_date_time(reminder.user_specified_date_time, chat_instance.get_utc_offset)} - {reminder.text}
             """.strip()
                 + "\n"
             )

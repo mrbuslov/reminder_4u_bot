@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, timezone
 
 from aiogram import types
 from asgiref.sync import sync_to_async
@@ -123,7 +123,7 @@ async def process_message(message: types.Message) -> str:
     message_to_user = ""
     saved_reminders = []  # to capture valid reminders
     for reminder in reminders_to_create:
-        save_res = await save_reminder(reminder)
+        save_res = await save_remяinder(reminder)
         if save_res is not None:
             saved_reminders.append(save_res)
 
@@ -132,8 +132,8 @@ async def process_message(message: types.Message) -> str:
             "<b>We set these reminders for you:</b>\n"
             + "\n".join(
                 [
-                    f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']} ({get_reminder_date_time(reminder['user_specified_date_time'])})"
-                    for reminder in reminders_to_create
+                    f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']} ({get_reminder_date_time(reminder['user_specified_date_time'], chat_instance.get_utc_offset)})"
+                    for reminder in saved_reminders
                 ]
             )
             + "\n\n"
@@ -143,7 +143,7 @@ async def process_message(message: types.Message) -> str:
         deleted_reminders = await delete_reminders(reminders_to_delete)
         message_to_user += "<b>We deleted these reminders for you:</b>\n" + "\n".join(
             [
-                f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']} ({get_reminder_date_time(reminder['user_specified_date_time'])})"
+                f"{get_reminder_type_emoji(reminder['reminder_type'])} {reminder['text']} ({get_reminder_date_time(reminder['user_specified_date_time'], chat_instance.get_utc_offset)})"
                 for reminder in deleted_reminders
             ]
         )
@@ -183,8 +183,8 @@ def get_pretty_time(date: datetime) -> str:
     return date.strftime(PRETTY_TIME_FORMAT)
 
 
-def get_reminder_date_time(date: datetime) -> str:
-    today = datetime.now().date()
+def get_reminder_date_time(date: datetime, offset_str: str = "+00:00") -> str:
+    today = datetime.now(TgChat.get_timezone_by_str_offset(offset_str)).date()
     tomorrow = today + timedelta(days=1)
 
     formatted_time = get_pretty_time(date)

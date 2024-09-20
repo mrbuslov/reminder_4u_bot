@@ -30,19 +30,23 @@ class TgChat(models.Model):
         return self.region or "Iceland (UTC+0)"
 
     @property
-    def get_utc_offset(self) -> str | None:
+    def get_utc_offset(self) -> str:
         match = re.search(PATTERN_EXTRACT_UTC_FROM_LOCATION, self.get_region)
         return match.group() if match else "+00:00"
 
-    @property
-    def get_datetime_in_user_timezone(self) -> datetime:
-        offset_str = self.get_utc_offset
+    @staticmethod
+    def get_timezone_by_str_offset(offset_str: str) -> timezone:
+        """If +00:00, return timezone obj"""
         # Extract hours and minutes from the offset string
         sign = 1 if offset_str[0] == "+" else -1
         hours, minutes = map(int, offset_str[1:].split(":"))
 
         utc_offset = timedelta(hours=sign * hours, minutes=sign * minutes)
-        tz = timezone(utc_offset)
+        return timezone(utc_offset)
+
+    @property
+    def get_datetime_in_user_timezone(self) -> datetime:
+        tz = self.get_timezone_by_str_offset(self.get_utc_offset)
         return datetime.now(tz)
 
     def __str__(self):
