@@ -7,6 +7,7 @@ PRETTY_TIME_FORMAT = "%H:%M"  # 14:34
 PRETTY_DATE_TIME_FORMAT_SHORT = "%A, %B %d at %H:%M"  # Monday, June 03 at 14:34
 PRETTY_DATE_TIME_FORMAT = "%A, %B %d, %Y at %H:%M"  # Monday, June 03, 2024 at 14:34
 PATTERN_EXTRACT_UTC_FROM_LOCATION = r"[+-]\d{2}:\d{2}"
+DEFAULT_TRANSLATION_LANGUAGE = "English"
 
 SYSTEM_MESSAGES = {
     "start_command": "Hello! Send me the <b>voice</b> or <b>text</b> message to create or delete the reminder",

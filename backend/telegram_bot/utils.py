@@ -1,4 +1,5 @@
-from datetime import UTC, datetime, timedelta, timezone
+import re
+from datetime import UTC, datetime, timedelta
 
 from aiogram import types
 from asgiref.sync import sync_to_async
@@ -20,6 +21,7 @@ from telegram_bot.consts import (
     PRETTY_TIME_FORMAT,
     PRETTY_DATE_TIME_FORMAT_SHORT,
     PRETTY_DATE_FORMAT_SHORT,
+    DEFAULT_TRANSLATION_LANGUAGE,
 )
 from telegram_bot.models.choices import MessageFromChoices, MessageTypeChoices
 from telegram_bot.models.models import TgChat, TgMessage
@@ -132,7 +134,9 @@ async def process_message(message: types.Message) -> str:
             "<b>We set these reminders for you:</b>\n"
             + "\n".join(
                 [
-                    f"{get_reminder_type_emoji(reminder.reminder_type)} {reminder.text} ({get_reminder_date_time(reminder.user_specified_date_time, chat_instance.get_utc_offset)})"
+                    f"{get_reminder_type_emoji(reminder.reminder_type)} {reminder.text}"
+                    + f"({get_reminder_date_time(reminder.user_specified_date_time, chat_instance.get_utc_offset)}) "
+                    + f"(delete - {get_reminder_delete_command(reminder.id)})"
                     for reminder in saved_reminders
                 ]
             )
@@ -154,6 +158,9 @@ async def process_message(message: types.Message) -> str:
 
 
 async def translate_message(text: str, language: str) -> str:
+    if language == DEFAULT_TRANSLATION_LANGUAGE:
+        return text
+
     text = await GPT_MODELS["gpt-4o-mini"].ainvoke(
         f"""
         Translate text to {language}. If text is already in {language}, don't translate it, just return it.
@@ -215,3 +222,26 @@ def get_pretty_date(only_date: bool = False, delta: int = 0) -> str:
         if only_date
         else _get_pretty_date_time(get_date_time_now() + timedelta(minutes=delta))
     )
+
+
+async def process_delete_reminder_command(message: types.Message) -> str:
+    chat_instance = await get_chat(message.chat.id)
+    match = re.search(r"(?<=rm_)\d+", message.text)
+    if match:
+        reminder_id_to_delete = match.group()
+        reminder: Reminder = await sync_to_async(
+            Reminder.objects.filter(id=reminder_id_to_delete, chat=chat_instance).first
+        )()
+        if not reminder:
+            text = "This reminder was either deleted or you wrote wrong ID. Please try again."
+        else:
+            text = f"Reminder '{reminder.text}' on {get_reminder_date_time(reminder.user_specified_date_time, chat_instance.get_utc_offset)} was deleted."
+            await sync_to_async(reminder.delete)()
+    else:
+        text = "We can't find any reminder to delete. Please try again."
+
+    return await translate_message(text, chat_instance.get_language)
+
+
+def get_reminder_delete_command(reminder_id: int) -> str:
+    return f"/rm_{reminder_id}"

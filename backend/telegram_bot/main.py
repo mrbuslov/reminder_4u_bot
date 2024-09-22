@@ -1,4 +1,5 @@
 import asyncio
+import re
 
 from aiogram import F, types
 from aiogram.enums.parse_mode import ParseMode
@@ -21,6 +22,8 @@ from telegram_bot.utils import (
     get_reminder_type_emoji,
     get_pretty_time,
     get_reminder_date_time,
+    process_delete_reminder_command,
+    get_reminder_delete_command,
 )
 
 
@@ -172,9 +175,9 @@ async def list_command(message: types.Message):
         """
         for reminder in reminders_for_today:
             text += (
-                f"""
-            {get_reminder_type_emoji(reminder.reminder_type)} {get_pretty_time(reminder.user_specified_date_time)} - {reminder.text}
-            """.strip()
+                f"{get_reminder_type_emoji(reminder.reminder_type)}"
+                + f"{get_pretty_time(reminder.user_specified_date_time)} - {reminder.text} "
+                + f"(delete - {get_reminder_delete_command(reminder.id)})"
                 + "\n"
             )
     else:
@@ -193,14 +196,20 @@ async def list_all_command(message: types.Message):
         """
         for reminder in all_reminders:
             text += (
-                f"""
-            {get_reminder_type_emoji(reminder.reminder_type)} {get_reminder_date_time(reminder.user_specified_date_time, chat_instance.get_utc_offset)} - {reminder.text}
-            """.strip()
+                f"{get_reminder_type_emoji(reminder.reminder_type)}"
+                + f"{get_reminder_date_time(reminder.user_specified_date_time, chat_instance.get_utc_offset)} - {reminder.text} "
+                + f"(delete - {get_reminder_delete_command(reminder.id)})"
                 + "\n"
             )
     else:
         text = SYSTEM_MESSAGES["list_all_command_invalid"]
     text = await translate_message(text, chat_instance.get_language)
+    await message.answer(text, parse_mode=ParseMode.HTML)
+
+
+@dp.message(Command("rm", re.compile(r"rm_\w+")))
+async def remove_reminder_command(message: types.Message):
+    text = await process_delete_reminder_command(message)
     await message.answer(text, parse_mode=ParseMode.HTML)
 
 

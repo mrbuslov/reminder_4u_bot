@@ -3,7 +3,10 @@ import re
 from django.db import models
 from datetime import datetime, timedelta, timezone
 
-from telegram_bot.consts import PATTERN_EXTRACT_UTC_FROM_LOCATION
+from telegram_bot.consts import (
+    PATTERN_EXTRACT_UTC_FROM_LOCATION,
+    DEFAULT_TRANSLATION_LANGUAGE,
+)
 from telegram_bot.models.choices import MessageFromChoices, MessageTypeChoices
 
 
@@ -23,7 +26,7 @@ class TgChat(models.Model):
 
     @property
     def get_language(self) -> str:
-        return self.language or "English"
+        return self.language or DEFAULT_TRANSLATION_LANGUAGE
 
     @property
     def get_region(self) -> str:

@@ -53,15 +53,15 @@ def send_reminder(reminder_id: int) -> None:
 should_skip_check_reminder = True
 
 
-@db_periodic_task(crontab(minute="*/5"))
-def check_reminder_every_five_mins():
+@db_periodic_task(crontab(minute="*/2"))
+def check_reminder_every_num_mins():
     """
     Checks, if there are reminders that need to be sent.
     Sometimes reminders are missed - we do this for double check
     """
     from reminder.utils import get_date_time_now
 
-    reminder_logger.info(f"Checking reminders every 5 minutes")
+    reminder_logger.info(f"Checking reminders every 2 minutes")
 
     # when we start the bot, huey will automatically send reminders, so we don't need to check them 1st time
     global should_skip_check_reminder
@@ -69,7 +69,7 @@ def check_reminder_every_five_mins():
         should_skip_check_reminder = False
         return
 
-    # find reminders that have been expired more than 5 minutes
+    # find reminders that have been expired more than 2 minutes
     expired_reminders = Reminder.objects.select_related("chat").filter(
         date_time__lt=get_date_time_now() - timedelta(minutes=5)
     )
