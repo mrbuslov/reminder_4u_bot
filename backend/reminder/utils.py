@@ -147,9 +147,9 @@ async def save_reminder(reminder_data: dict) -> Reminder | None:
         return None
 
     reminder_obj = await sync_to_async(Reminder.objects.create)(**reminder_data)
-    task = send_reminder.schedule((reminder_obj.id,), eta=reminder_obj.date_time)
-    reminder_obj.task_id = task.id
-    await sync_to_async(reminder_obj.save)()
+    # task = send_reminder.schedule((reminder_obj.id,), eta=reminder_obj.date_time)
+    # reminder_obj.task_id = task.id
+    # await sync_to_async(reminder_obj.save)()
     return reminder_obj
 
 

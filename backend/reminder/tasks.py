@@ -32,6 +32,8 @@ async def send_reminder_text(found_reminder: Reminder) -> bool:
         return False
 
 
+# DEPRECATED: for some reason it doesn't work sometimes. So instead of scheduling it, we just write it to db
+# and then with crontab we will send it
 @db_task()
 def send_reminder(reminder_id: int) -> None:
     """Sends reminder to user."""
@@ -50,10 +52,7 @@ def send_reminder(reminder_id: int) -> None:
         found_reminder.delete()
 
 
-should_skip_check_reminder = True
-
-
-@db_periodic_task(crontab(minute="*/2"))
+@db_periodic_task(crontab(minute="*/1"))
 def check_reminder_every_num_mins():
     """
     Checks, if there are reminders that need to be sent.
@@ -61,23 +60,11 @@ def check_reminder_every_num_mins():
     """
     from reminder.utils import get_date_time_now
 
-    reminder_logger.info(f"Checking reminders every 2 minutes")
-
-    # when we start the bot, huey will automatically send reminders, so we don't need to check them 1st time
-    global should_skip_check_reminder
-    if should_skip_check_reminder:
-        should_skip_check_reminder = False
-        return
-
-    # find reminders that have been expired more than 2 minutes
+    reminder_logger.info(f"Checking reminders every 1 minute")
     expired_reminders = Reminder.objects.select_related("chat").filter(
-        date_time__lt=get_date_time_now() - timedelta(minutes=5)
+        date_time__lte=get_date_time_now()
     )
     for reminder in expired_reminders:
-        reminder_logger.warning(
-            f"Reminder is expired. Sending it with crontab func. Reminder text: '{reminder.text}'"
-        )
-
         loop = get_running_loop()
         result = loop.run_until_complete(send_reminder_text(reminder))
 

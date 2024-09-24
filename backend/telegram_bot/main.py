@@ -23,7 +23,7 @@ from telegram_bot.utils import (
     get_pretty_time,
     get_reminder_date_time,
     process_delete_reminder_command,
-    get_reminder_delete_command,
+    get_reminder_delete_text,
 )
 
 
@@ -177,7 +177,7 @@ async def list_command(message: types.Message):
             text += (
                 f"{get_reminder_type_emoji(reminder.reminder_type)}"
                 + f"{get_pretty_time(reminder.user_specified_date_time)} - {reminder.text} "
-                + f"(delete - {get_reminder_delete_command(reminder.id)})"
+                + f"{get_reminder_delete_text(reminder.id)}"
                 + "\n"
             )
     else:
@@ -198,7 +198,7 @@ async def list_all_command(message: types.Message):
             text += (
                 f"{get_reminder_type_emoji(reminder.reminder_type)}"
                 + f"{get_reminder_date_time(reminder.user_specified_date_time, chat_instance.get_utc_offset)} - {reminder.text} "
-                + f"(delete - {get_reminder_delete_command(reminder.id)})"
+                + f"{get_reminder_delete_text(reminder.id)}"
                 + "\n"
             )
     else:
