@@ -50,14 +50,18 @@ async def get_reminders(
     user_id: str, date_time: datetime | None = None
 ) -> list[Reminder]:
     if date_time:
-        queryset = Reminder.objects.filter(
-            date_time__date=date_time.date(), chat__user_id=user_id
-        ).order_by("date_time")
+        queryset = (
+            Reminder.objects.select_related("chat")
+            .filter(date_time__date=date_time.date(), chat__user_id=user_id)
+            .order_by("date_time")
+        )
     else:
         today = datetime.now(tz=UTC).date()
-        queryset = Reminder.objects.filter(
-            date_time__date__gte=today, chat__user_id=user_id
-        ).order_by("date_time")
+        queryset = (
+            Reminder.objects.select_related("chat")
+            .filter(date_time__date__gte=today, chat__user_id=user_id)
+            .order_by("date_time")
+        )
     reminders_list = await sync_to_async(list)(queryset)
     return reminders_list
 

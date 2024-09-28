@@ -170,9 +170,12 @@ async def list_command(message: types.Message):
         chat_instance.user_id, date_time=get_date_time_now()
     )
     if reminders_for_today:
-        text = """
+        text = (
+            """
         <b>Your reminders for today:</b>
-        """
+        """.strip()
+            + "\n"
+        )
         for reminder in reminders_for_today:
             text += (
                 f"{get_reminder_type_emoji(reminder.reminder_type)}"
@@ -191,9 +194,12 @@ async def list_all_command(message: types.Message):
     chat_instance = await get_chat(message.chat.id)
     all_reminders = await get_reminders(chat_instance.user_id)
     if all_reminders:
-        text = """
+        text = (
+            """
         <b>Your all reminders:</b>
-        """
+        """.strip()
+            + "\n"
+        )
         for reminder in all_reminders:
             text += (
                 f"{get_reminder_type_emoji(reminder.reminder_type)}"

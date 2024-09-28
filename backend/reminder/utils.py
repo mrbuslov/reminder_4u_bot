@@ -23,7 +23,6 @@ from telegram_bot.models.models import TgChat
 from telegram_bot.settings import bot
 from dateutil.parser import parse
 from asgiref.sync import sync_to_async
-from reminder.tasks import send_reminder
 from django.db import transaction
 
 GPT_MODELS = {
