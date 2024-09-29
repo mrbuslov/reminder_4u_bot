@@ -120,7 +120,7 @@ def check_reminder_every_num_mins():
             reminder.delete()
 
 
-@db_periodic_task(crontab(hour="*/1"))
+@db_periodic_task(crontab(minute="*/60"))
 def send_reminders_for_today_in_the_morning():
     """Checks every hour for users in different timezones to send reminders for today at 8 am. by their time"""
     reminder_logger.info(f"Checking reminders 'for today' every 1 hour")
