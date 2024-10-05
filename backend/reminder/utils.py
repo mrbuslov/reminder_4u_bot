@@ -206,7 +206,7 @@ async def delete_reminders(reminders_datas_list: list[dict]) -> list[dict]:
         reminder = await sync_to_async(Reminder.objects.get)(id=reminder_id_to_delete)
         reminder_data = {
             "reminder_type": reminder.reminder_type,
-            "text": reminder.text,
+            "text": reminder.reminder_text,
             "user_specified_date_time": reminder.user_specified_date_time,
         }
         res = await sync_to_async(_delete_reminder_from_db_n_task)(reminder)

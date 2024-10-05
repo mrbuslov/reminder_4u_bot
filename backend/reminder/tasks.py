@@ -24,7 +24,7 @@ async def send_reminder_text(found_reminder: Reminder) -> bool:
 
     try:
         reminder_text = await translate_message(
-            found_reminder.text, found_reminder.chat.get_language
+            found_reminder.reminder_text, found_reminder.chat.get_language
         )
         await bot.send_message(chat_id=found_reminder.chat.id, text=reminder_text)
         reminder_logger.error(f"Reminder was sent to {found_reminder.chat.id}")
@@ -52,7 +52,7 @@ async def send_reminders_for_today(reminders_list: list[Reminder]) -> None:
     for reminder in reminders_list:
         text += (
             f"{get_reminder_type_emoji(reminder.reminder_type)}"
-            + f"{get_pretty_time(reminder.user_specified_date_time)} - {reminder.text} "
+            + f"{get_pretty_time(reminder.user_specified_date_time)} - {reminder.reminder_text} "
             + f"{get_reminder_delete_text(reminder.id)}"
             + "\n"
         )

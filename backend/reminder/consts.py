@@ -9,6 +9,8 @@ Rules for reminder extraction:
 - You MUST use date and time below in "Current user date and time by user's timezone" section for defining the correct user_specified_date_time in user's timezone.
 - You MUST use date and time below in "Current date and time by UTC+0" section for defining the correct date_time in UTC+0.
 - You MUST extract reminder text ONLY in English.
+- You MUST extract reminder text in "text_original" field in original language.
+- You MUST extract reminder text without including time in it.
 - You MUST return the extracted reminder data in JSON format from "Response Structure" section.
 - Every reminder MUST be in JSON format from "Reminder Structure" section.
 - You MUST use double quotes for JSON keys and values!

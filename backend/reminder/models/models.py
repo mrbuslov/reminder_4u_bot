@@ -6,6 +6,7 @@ from reminder.models.choices import ReminderTypeChoices
 
 class Reminder(models.Model):
     text = models.TextField()
+    text_original = models.TextField(default="")
     created_at = models.DateTimeField(auto_now_add=True)
     date_time = models.DateTimeField(verbose_name="Date and time to remind")
     user_specified_date_time = models.DateTimeField(
@@ -26,7 +27,12 @@ class Reminder(models.Model):
     def get_structure() -> dict:
         return {
             "text": "str",
+            "text_original": "str",
             "date_time": "datetime",
             "user_specified_date_time": "datetime",
             "reminder_type": f"{ReminderTypeChoices.MEETING.value} | {ReminderTypeChoices.OTHER.value}",
         }
+
+    @property
+    def reminder_text(self) -> str:
+        return self.text_original or self.text

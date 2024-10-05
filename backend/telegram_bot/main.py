@@ -84,7 +84,6 @@ async def set_location_command_waiting_for_value(
         User message: {message.text}
     """
     )
-    print("region_n_timezone", region_n_timezone)
     if region_n_timezone == "None":
         text = SYSTEM_MESSAGES["location_not_changed"]
     else:
@@ -179,7 +178,7 @@ async def list_command(message: types.Message):
         for reminder in reminders_for_today:
             text += (
                 f"{get_reminder_type_emoji(reminder.reminder_type)}"
-                + f"{get_pretty_time(reminder.user_specified_date_time)} - {reminder.text} "
+                + f"{get_pretty_time(reminder.user_specified_date_time)} - {reminder.reminder_text} "
                 + f"{get_reminder_delete_text(reminder.id)}"
                 + "\n"
             )
@@ -203,7 +202,7 @@ async def list_all_command(message: types.Message):
         for reminder in all_reminders:
             text += (
                 f"{get_reminder_type_emoji(reminder.reminder_type)}"
-                + f"{get_reminder_date_time(reminder.user_specified_date_time, chat_instance.get_utc_offset)} - {reminder.text} "
+                + f"{get_reminder_date_time(reminder.user_specified_date_time, chat_instance.get_utc_offset)} - {reminder.reminder_text} "
                 + f"{get_reminder_delete_text(reminder.id)}"
                 + "\n"
             )
