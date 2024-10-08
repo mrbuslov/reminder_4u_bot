@@ -182,7 +182,7 @@ async def delete_reminders(reminders_datas_list: list[dict]) -> list[dict]:
     all_reminders_list_str = [
         f"""
         id: {reminder.id}
-        reminder text: {reminder.text}
+        reminder text: {reminder.reminder_text}
         date and time for reminder execution: {reminder.user_specified_date_time}
         reminder type: {reminder.reminder_type}
         """

@@ -138,7 +138,7 @@ async def process_message(message: types.Message) -> str:
             "<b>We set these reminders for you:</b>\n"
             + "\n".join(
                 [
-                    f"{get_reminder_type_emoji(reminder.reminder_type)} {reminder.text}"
+                    f"{get_reminder_type_emoji(reminder.reminder_type)} {reminder.reminder_text}"
                     + f"({get_reminder_date_time(reminder.user_specified_date_time, chat_instance.get_utc_offset)}) "
                     + f"{get_reminder_delete_text(reminder.id)}"
                     for reminder in saved_reminders
@@ -239,7 +239,7 @@ async def process_delete_reminder_command(message: types.Message) -> str:
         if not reminder:
             text = "This reminder was either deleted or you wrote wrong ID. Please try again."
         else:
-            text = f"Reminder '{reminder.text}' on {get_reminder_date_time(reminder.user_specified_date_time, chat_instance.get_utc_offset)} was deleted."
+            text = f"Reminder '{reminder.reminder_text}' on {get_reminder_date_time(reminder.user_specified_date_time, chat_instance.get_utc_offset)} was deleted."
             await sync_to_async(reminder.delete)()
     else:
         text = "We can't find any reminder to delete. Please try again."
