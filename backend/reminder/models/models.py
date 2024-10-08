@@ -35,4 +35,4 @@ class Reminder(models.Model):
 
     @property
     def reminder_text(self) -> str:
-        return self.text_original or self.text
+        return self.text_original.capitalize() or self.text.capitalize()
