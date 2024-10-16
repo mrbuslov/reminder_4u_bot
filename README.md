@@ -1,5 +1,6 @@
 You can try the bot here! [t.me/reminder_4u_bot](https://t.me/reminder_4u_bot)
 Written by [@mrbuslov](https://t.me/mrbuslov)
+UPD: bot is unavailable now, it was shut down because of lack of users. If you have any ideas about promotion, I love to cooperate with you
 
 # About
 AI Telegram Bot Reminder. You send a free-form text-reminder OR record a voice message, the AI bot records it and reminds you at the right time :) Try it out!
