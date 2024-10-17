@@ -44,21 +44,26 @@ def get_date_time_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-async def save_voice_as_mp3(voice: types.Voice) -> str:
+async def save_voice_as_mp3(voice: types.Voice) -> bytes:
     """Downloads the voice message and saves it in mp3 format."""
-    voice_file_info = await bot.get_file(voice.file_id)
-    voice_ogg = io.BytesIO()
-    await bot.download_file(voice_file_info.file_path, voice_ogg)
+    try:
+        voice_file_info = await bot.get_file(voice.file_id)
+        voice_ogg = io.BytesIO()
+        await bot.download_file(voice_file_info.file_path, voice_ogg)
 
-    directory = "temp_voice_files"
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    voice_mp3_path = f"{directory}/voice-{voice.file_unique_id}.{FILE_EXTENSION_TO_CONVERT_VOICE_AUDIO}"
-    AudioSegment.from_file(voice_ogg, format="ogg").export(
-        voice_mp3_path, format=FILE_EXTENSION_TO_CONVERT_VOICE_AUDIO
-    )
-    return voice_mp3_path
+        voice_mp3_buffer = io.BytesIO()
+        AudioSegment.from_file(
+            voice_ogg,
+            format="ogg",
+        ).export(
+            voice_mp3_buffer,
+            format=FILE_EXTENSION_TO_CONVERT_VOICE_AUDIO,
+        )
+        audio_file_out_bytes = voice_mp3_buffer.getvalue()
+    except Exception as e:
+        reminder_logger.critical(f"Error converting audio to audio by pydub: {e}")
+        audio_file_out_bytes = b''
+    return audio_file_out_bytes
 
 
 async def parse_message_to_text(message: types.Message) -> str:
@@ -66,13 +71,10 @@ async def parse_message_to_text(message: types.Message) -> str:
     if message.text:
         return message.text
     elif message.voice:
-        voice_mp3_path = await save_voice_as_mp3(message.voice)
+        voice_mp3_bytes = await save_voice_as_mp3(message.voice)
         try:
-            async with aiofiles.open(voice_mp3_path, "rb") as f:
-                file_content = await f.read()
-                buffer = io.BytesIO(file_content)
-                text = await GPT_MODELS[GPTModelName.GPT_4O.value].ainvoke_audio(buffer)
-            return text
+            buffer = io.BytesIO(voice_mp3_bytes)
+            return await GPT_MODELS[GPTModelName.GPT_4O.value].ainvoke_audio(buffer)
         except Exception as e:
             reminder_logger.critical(f"Error in parse_message_to_text: {e}")
             return ""
